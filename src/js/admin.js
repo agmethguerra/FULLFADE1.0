@@ -63,8 +63,24 @@ function closeModal(id) { document.getElementById(id)?.classList.remove('open');
 // ─── NEGOCIOS ─────────────────────────────────────────────────────────────────
 function subscribeNegocios() {
   db.collection('barbershops').orderBy('createdAt','desc')
-    .onSnapshot(snap => {
-      _allNegocios = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    .onSnapshot(async snap => {
+      // Enriquecer cada negocio con el email/teléfono del owner
+      const negocios = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Buscar datos del owner para cada negocio (batch, no más de 10 a la vez)
+      const enriched = await Promise.all(negocios.map(async n => {
+        if (!n.ownerId || n._ownerLoaded) return n;
+        try {
+          const uSnap = await db.collection('users').doc(n.ownerId).get();
+          if (uSnap.exists) {
+            const ud = uSnap.data();
+            return { ...n, ownerEmail: ud.email || '', ownerPhone: ud.phone || '', ownerName: ud.displayName || '', _ownerLoaded: true };
+          }
+        } catch(e) { /* ignorar */ }
+        return n;
+      }));
+
+      _allNegocios = enriched;
       filterNegocios();
       loadPlanDistribucion();
     }, err => console.error('Error negocios:', err));
@@ -247,11 +263,13 @@ function abrirModalNegocio(id) {
       </div>
     </div>
 
-    <div style="font-size:0.75rem;color:var(--muted);padding:10px 0 0;border-top:1px solid var(--border);margin-top:4px;line-height:1.7">
-      <strong style="color:var(--text-sub)">Owner:</strong> <code>${n.ownerId||'—'}</code><br>
-      <strong style="color:var(--text-sub)">ID Barbería:</strong> <code>${n.id}</code><br>
-      <strong style="color:var(--text-sub)">Registrado:</strong> ${n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}) : '—'}
-    </div>`;
+    <div style="font-size:0.75rem;color:var(--muted);padding:10px 0 0;border-top:1px solid var(--border);margin-top:4px;line-height:1.9">
+      ${n.ownerName  ? `<div><strong style="color:var(--text-sub)">Owner:</strong> ${escHtml(n.ownerName)}</div>` : ''}
+      ${n.ownerEmail ? `<div><strong style="color:var(--text-sub)">Email:</strong> ${escHtml(n.ownerEmail)}</div>` : ''}
+      ${n.ownerPhone ? `<div><strong style="color:var(--text-sub)">Teléfono:</strong> <a href="https://wa.me/57${n.ownerPhone.replace(/\D/g,'')}" target="_blank" style="color:#25D366">${escHtml(n.ownerPhone)}</a></div>` : ''}
+      <div><strong style="color:var(--text-sub)">ID Barbería:</strong> <code>${n.id}</code></div>
+      <div><strong style="color:var(--text-sub)">Registrado:</strong> ${n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}) : '—'}</div>
+    </div>\``;
 
   openModal('modalNegocio');
 }

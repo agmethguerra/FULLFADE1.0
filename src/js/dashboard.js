@@ -4,13 +4,29 @@ let currentUser = null;
 let userData    = null;
 let barbershop  = null;
 
+// Reintenta leer el doc del usuario hasta 5 veces (para nuevos registros)
+async function retryGetUserData(uid, maxTries = 5) {
+  for (let i = 1; i <= maxTries; i++) {
+    const data = await BarbershopService.getUserData(uid);
+    if (data) return data;
+    if (i < maxTries) {
+      // Espera progresiva: 400ms, 800ms, 1200ms, 1600ms
+      await new Promise(r => setTimeout(r, 400 * i));
+    }
+  }
+  return null;
+}
+
 requireAuth(async (user) => {
   currentUser = user;
   try {
-    userData = await BarbershopService.getUserData(user.uid);
+    // Retry getUserData hasta 5 veces con backoff progresivo.
+    // Necesario porque onAuthStateChanged puede disparar antes de que
+    // Firestore termine de escribir el documento users/{uid} al registrarse.
+    userData = await retryGetUserData(user.uid);
 
-    // Superadmin — redirigir a panel admin
-    if (userData.role === 'superadmin') {
+    // Superadmin — redirigir ANTES de verificar barbershopId
+    if (userData?.role === 'superadmin') {
       window.location.href = '/src/pages/admin.html';
       return;
     }

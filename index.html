@@ -1,1789 +1,1091 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FullFade - Software de Gestión para Barberías</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-    <meta
-      name="description"
-      content="Controla tu caja, agenda citas, gestiona barberos y genera nóminas. Todo desde una sola plataforma diseñada para barberías colombianas."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FullFade — Software de Gestión para Barberías</title>
+  <meta name="description" content="Controla tu caja, agenda citas, gestiona barberos y genera nóminas. Todo desde una sola plataforma diseñada para barberías colombianas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      :root {
-        --black: #0a0a0a;
-        --white: #ffffff;
-        --gold: #c9a84c;
-        --gold-lt: #e8c96a;
-        --gold-dk: #9a7a34;
-        --gray-1: #f7f6f4;
-        --gray-2: #eeece9;
-        --gray-3: #c8c4bc;
-        --gray-4: #7a7570;
-        --gray-5: #3a3733;
-        --serif: "Playfair Display", Georgia, serif;
-        --sans: "DM Sans", system-ui, sans-serif;
-        --radius: 10px;
-        --trans: 0.22s ease;
-      }
+    :root {
+      --black:   #0a0a0a;
+      --white:   #ffffff;
+      --gold:    #C9A84C;
+      --gold-lt: #e8c96a;
+      --gold-dk: #9a7a34;
+      --gray-1:  #f7f6f4;
+      --gray-2:  #eeece9;
+      --gray-3:  #c8c4bc;
+      --gray-4:  #7a7570;
+      --gray-5:  #3a3733;
+      --serif:   'Playfair Display', Georgia, serif;
+      --sans:    'DM Sans', system-ui, sans-serif;
+      --radius:  10px;
+      --trans:   0.22s ease;
+    }
 
-      html {
-        scroll-behavior: smooth;
-      }
-      body {
-        font-family: var(--sans);
-        background: var(--white);
-        color: var(--black);
-        overflow-x: hidden;
-      }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--white); color: var(--black); overflow-x: hidden; }
 
-      /* ── NAVBAR ─────────────────────────────────────────────────────── */
-      .nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 100;
-        background: var(--white);
-        border-bottom: 1px solid var(--gray-2);
-        box-shadow: 0 1px 20px rgba(0, 0, 0, 0.06);
-      }
-      .nav-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 40px;
-        padding: 0 32px;
-        height: 68px;
-      }
-      .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        flex-shrink: 0;
-      }
-      .logo-img {
-        height: 40px;
-        width: auto;
-        display: block;
-      }
+    /* ── NAVBAR ─────────────────────────────────────────────────────── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-2);
+      box-shadow: 0 1px 20px rgba(0,0,0,0.06);
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 40px;
+      padding: 0 32px; height: 68px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    /* logo-icon replaced by inline SVG */
+    .logo-text {
+      font-family: var(--serif); font-size: 1.35rem; font-weight: 900;
+      letter-spacing: 0.06em; color: var(--black); line-height: 1;
+    }
+    .logo-text span { color: var(--gold); }
 
-      .nav-links {
-        display: flex;
-        gap: 32px;
-        flex: 1;
-      }
-      .nav-links a {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--gray-5);
-        text-decoration: none;
-        letter-spacing: 0.01em;
-        transition: color var(--trans);
-      }
-      .nav-links a:hover {
-        color: var(--black);
-      }
+    .nav-links { display: flex; gap: 32px; flex: 1; }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500; color: var(--gray-5);
+      text-decoration: none; letter-spacing: 0.01em;
+      transition: color var(--trans);
+    }
+    .nav-links a:hover { color: var(--black); }
 
-      .nav-cta {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-shrink: 0;
-      }
-      .btn-nav-ghost {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--gray-5);
-        text-decoration: none;
-        padding: 8px 18px;
-        border: 1px solid transparent;
-        border-radius: var(--radius);
-        transition: all var(--trans);
-      }
-      .btn-nav-ghost:hover {
-        color: var(--black);
-        border-color: var(--gray-2);
-        background: var(--gray-1);
-      }
-      .btn-nav-cta {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--white);
-        text-decoration: none;
-        padding: 9px 22px;
-        background: var(--black);
-        border-radius: var(--radius);
-        transition: all var(--trans);
-        letter-spacing: 0.01em;
-      }
-      .btn-nav-cta:hover {
-        background: var(--gray-5);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      }
+    .nav-cta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .btn-nav-ghost {
+      font-size: 0.875rem; font-weight: 500; color: var(--gray-5);
+      text-decoration: none; padding: 8px 18px;
+      border: 1px solid transparent; border-radius: var(--radius);
+      transition: all var(--trans);
+    }
+    .btn-nav-ghost:hover { color: var(--black); border-color: var(--gray-2); background: var(--gray-1); }
+    .btn-nav-cta {
+      font-size: 0.875rem; font-weight: 600; color: var(--white);
+      text-decoration: none; padding: 9px 22px;
+      background: var(--black); border-radius: var(--radius);
+      transition: all var(--trans); letter-spacing: 0.01em;
+    }
+    .btn-nav-cta:hover { background: var(--gray-5); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
-      .nav-burger {
-        display: none;
-        flex-direction: column;
-        gap: 5px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-      }
-      .nav-burger span {
-        display: block;
-        width: 22px;
-        height: 2px;
-        background: var(--black);
-        border-radius: 2px;
-        transition: all 0.3s;
-      }
-      .nav-mobile {
-        display: none;
-        flex-direction: column;
-        gap: 4px;
-        padding: 16px 24px 20px;
-        border-top: 1px solid var(--gray-2);
-        background: var(--white);
-      }
-      .nav-mobile.open {
-        display: flex;
-      }
-      .nav-mobile a {
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--gray-5);
-        text-decoration: none;
-        padding: 10px 12px;
-        border-radius: 8px;
-        transition: all var(--trans);
-      }
-      .nav-mobile a:hover {
-        color: var(--black);
-        background: var(--gray-1);
-      }
-      .nav-mobile .btn-mobile-cta {
-        margin-top: 8px;
-        text-align: center;
-        background: var(--black);
-        color: var(--white);
-        font-weight: 600;
-        border-radius: var(--radius);
-      }
-      .nav-mobile .btn-mobile-cta:hover {
-        background: var(--gray-5);
-      }
+    .nav-burger {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
+    }
+    .nav-burger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--black); border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .nav-mobile {
+      display: none; flex-direction: column; gap: 4px;
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--gray-2);
+      background: var(--white);
+    }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a {
+      font-size: 0.9rem; font-weight: 500; color: var(--gray-5);
+      text-decoration: none; padding: 10px 12px; border-radius: 8px;
+      transition: all var(--trans);
+    }
+    .nav-mobile a:hover { color: var(--black); background: var(--gray-1); }
+    .nav-mobile .btn-mobile-cta {
+      margin-top: 8px; text-align: center; background: var(--black);
+      color: var(--white); font-weight: 600; border-radius: var(--radius);
+    }
+    .nav-mobile .btn-mobile-cta:hover { background: var(--gray-5); }
 
-      /* ── HERO ────────────────────────────────────────────────────────── */
-      .hero {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        padding: 110px 32px 80px;
-        background: var(--gray-1);
-        position: relative;
-        overflow: hidden;
-      }
-      .hero::before {
-        content: "";
-        position: absolute;
-        top: -120px;
-        right: -160px;
-        width: 700px;
-        height: 700px;
-        border-radius: 50%;
-        background: radial-gradient(
-          circle,
-          rgba(201, 168, 76, 0.12) 0%,
-          transparent 70%
-        );
-        pointer-events: none;
-      }
-      .hero::after {
-        content: "";
-        position: absolute;
-        bottom: -80px;
-        left: -100px;
-        width: 500px;
-        height: 500px;
-        border-radius: 50%;
-        background: radial-gradient(
-          circle,
-          rgba(10, 10, 10, 0.04) 0%,
-          transparent 70%
-        );
-        pointer-events: none;
-      }
+    /* ── HERO ────────────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding: 110px 32px 80px;
+      background: var(--gray-1);
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -120px; right: -160px;
+      width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; bottom: -80px; left: -100px;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(10,10,10,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-      .hero-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 80px;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-      }
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto; width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+      align-items: center; position: relative; z-index: 1;
+    }
 
-      .hero-eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--gold-dk);
-        background: rgba(201, 168, 76, 0.1);
-        border: 1px solid rgba(201, 168, 76, 0.25);
-        border-radius: 999px;
-        padding: 5px 14px;
-        margin-bottom: 24px;
-      }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold-dk);
+      background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 999px; padding: 5px 14px;
+      margin-bottom: 24px;
+    }
 
-      .hero-title {
-        font-family: var(--serif);
-        font-size: clamp(2.6rem, 5vw, 4rem);
-        font-weight: 900;
-        line-height: 1.08;
-        letter-spacing: -0.01em;
-        color: var(--black);
-        margin-bottom: 22px;
-      }
-      .hero-title-line {
-        display: block;
-      }
-      .hero-title-accent {
-        display: block;
-        color: var(--gold);
-        font-style: italic;
-      }
+    .hero-title {
+      font-family: var(--serif); font-size: clamp(2.6rem, 5vw, 4rem);
+      font-weight: 900; line-height: 1.08; letter-spacing: -0.01em;
+      color: var(--black); margin-bottom: 22px;
+    }
+    .hero-title-line { display: block; }
+    .hero-title-accent {
+      display: block; color: var(--gold);
+      font-style: italic;
+    }
 
-      .hero-sub {
-        font-size: 1.05rem;
-        color: var(--gray-4);
-        line-height: 1.7;
-        margin-bottom: 36px;
-        max-width: 480px;
-        font-weight: 300;
-      }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--gray-4); line-height: 1.7;
+      margin-bottom: 36px; max-width: 480px; font-weight: 300;
+    }
 
-      .hero-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 36px;
-      }
-      .btn-hero-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--black);
-        color: var(--white);
-        font-size: 0.95rem;
-        font-weight: 600;
-        padding: 14px 28px;
-        border-radius: var(--radius);
-        text-decoration: none;
-        transition: all var(--trans);
-        letter-spacing: 0.01em;
-      }
-      .btn-hero-primary:hover {
-        background: var(--gray-5);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      }
-      .btn-hero-secondary {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: transparent;
-        color: var(--gray-5);
-        font-size: 0.95rem;
-        font-weight: 500;
-        padding: 14px 24px;
-        border: 1px solid var(--gray-3);
-        border-radius: var(--radius);
-        text-decoration: none;
-        transition: all var(--trans);
-      }
-      .btn-hero-secondary:hover {
-        color: var(--black);
-        border-color: var(--black);
-        background: var(--white);
-      }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 36px; }
+    .btn-hero-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--black); color: var(--white);
+      font-size: 0.95rem; font-weight: 600; padding: 14px 28px;
+      border-radius: var(--radius); text-decoration: none;
+      transition: all var(--trans); letter-spacing: 0.01em;
+    }
+    .btn-hero-primary:hover { background: var(--gray-5); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .btn-hero-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: var(--gray-5);
+      font-size: 0.95rem; font-weight: 500; padding: 14px 24px;
+      border: 1px solid var(--gray-3); border-radius: var(--radius);
+      text-decoration: none; transition: all var(--trans);
+    }
+    .btn-hero-secondary:hover { color: var(--black); border-color: var(--black); background: var(--white); }
 
-      .hero-trust {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-      }
-      .hero-trust-item {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        font-size: 0.82rem;
-        color: var(--gray-4);
-        font-weight: 500;
-      }
-      .hero-trust-item i {
-        color: var(--gold);
-        font-size: 0.9rem;
-      }
+    .hero-trust {
+      display: flex; flex-wrap: wrap; gap: 20px;
+    }
+    .hero-trust-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.82rem; color: var(--gray-4); font-weight: 500;
+    }
+    .hero-trust-item i { color: var(--gold); font-size: 0.9rem; }
 
-      /* ── PREVIEW ─────────────────────────────────────────────────────── */
-      .preview-wrap {
-        position: relative;
-      }
-      .preview-wrap::before {
-        content: "";
-        position: absolute;
-        inset: -16px;
-        border-radius: 20px;
-        background: linear-gradient(
-          135deg,
-          rgba(201, 168, 76, 0.08),
-          transparent 60%
-        );
-        z-index: 0;
-      }
-      .preview-card {
-        position: relative;
-        z-index: 1;
-        background: var(--white);
-        border: 1px solid var(--gray-2);
-        border-radius: 16px;
-        box-shadow:
-          0 24px 64px rgba(0, 0, 0, 0.12),
-          0 4px 12px rgba(0, 0, 0, 0.06);
-        overflow: hidden;
-        transform: perspective(1000px) rotateY(-4deg) rotateX(2deg);
-        transition: transform 0.4s ease;
-      }
-      .preview-card:hover {
-        transform: perspective(1000px) rotateY(-1deg) rotateX(1deg);
-      }
+    /* ── PREVIEW ─────────────────────────────────────────────────────── */
+    .preview-wrap {
+      position: relative;
+    }
+    .preview-wrap::before {
+      content: '';
+      position: absolute; inset: -16px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.08), transparent 60%);
+      z-index: 0;
+    }
+    .preview-card {
+      position: relative; z-index: 1;
+      background: var(--white);
+      border: 1px solid var(--gray-2);
+      border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+      overflow: hidden;
+      transform: perspective(1000px) rotateY(-4deg) rotateX(2deg);
+      transition: transform 0.4s ease;
+    }
+    .preview-card:hover { transform: perspective(1000px) rotateY(-1deg) rotateX(1deg); }
 
-      .preview-titlebar {
-        background: var(--black);
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .preview-dots {
-        display: flex;
-        gap: 6px;
-      }
-      .preview-dots span {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-      }
-      .preview-dots span:nth-child(1) {
-        background: #ff5f57;
-      }
-      .preview-dots span:nth-child(2) {
-        background: #febc2e;
-      }
-      .preview-dots span:nth-child(3) {
-        background: #28c840;
-      }
-      .preview-url {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 6px;
-        padding: 4px 12px;
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.5);
-        font-family: monospace;
-      }
+    .preview-titlebar {
+      background: var(--black); padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .preview-dots { display: flex; gap: 6px; }
+    .preview-dots span {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .preview-dots span:nth-child(1) { background: #ff5f57; }
+    .preview-dots span:nth-child(2) { background: #febc2e; }
+    .preview-dots span:nth-child(3) { background: #28c840; }
+    .preview-url {
+      flex: 1; background: rgba(255,255,255,0.08); border-radius: 6px;
+      padding: 4px 12px; font-size: 0.72rem; color: rgba(255,255,255,0.5);
+      font-family: monospace;
+    }
 
-      .preview-body {
-        padding: 20px;
-      }
+    .preview-body { padding: 20px; }
 
-      /* KPI row */
-      .preview-kpis {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 16px;
-      }
-      .pkpi {
-        background: var(--gray-1);
-        border-radius: 8px;
-        padding: 12px;
-        border: 1px solid var(--gray-2);
-      }
-      .pkpi-val {
-        font-family: var(--serif);
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--black);
-        line-height: 1;
-        margin-bottom: 3px;
-      }
-      .pkpi-val.gold {
-        color: var(--gold);
-      }
-      .pkpi-lbl {
-        font-size: 0.68rem;
-        color: var(--gray-4);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
+    /* KPI row */
+    .preview-kpis {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pkpi {
+      background: var(--gray-1); border-radius: 8px; padding: 12px;
+      border: 1px solid var(--gray-2);
+    }
+    .pkpi-val {
+      font-family: var(--serif); font-size: 1.1rem; font-weight: 700;
+      color: var(--black); line-height: 1; margin-bottom: 3px;
+    }
+    .pkpi-val.gold { color: var(--gold); }
+    .pkpi-lbl { font-size: 0.68rem; color: var(--gray-4); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
 
-      /* Chart */
-      .preview-chart-wrap {
-        background: var(--gray-1);
-        border-radius: 10px;
-        padding: 14px;
-        border: 1px solid var(--gray-2);
-        margin-bottom: 14px;
-      }
-      .preview-chart-title {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--gray-4);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 12px;
-      }
-      .preview-chart {
-        display: flex;
-        align-items: flex-end;
-        gap: 5px;
-        height: 70px;
-      }
-      .preview-chart .cb {
-        flex: 1;
-        border-radius: 3px 3px 0 0;
-        background: var(--gray-2);
-        transition: height 0.4s ease;
-      }
-      .preview-chart .cb.gold-bar {
-        background: var(--gold);
-      }
-      .preview-chart .cb.green-bar {
-        background: rgba(47, 158, 68, 0.55);
-      }
+    /* Chart */
+    .preview-chart-wrap {
+      background: var(--gray-1); border-radius: 10px; padding: 14px;
+      border: 1px solid var(--gray-2); margin-bottom: 14px;
+    }
+    .preview-chart-title {
+      font-size: 0.72rem; font-weight: 600; color: var(--gray-4);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+    }
+    .preview-chart {
+      display: flex; align-items: flex-end; gap: 5px; height: 70px;
+    }
+    .preview-chart .cb {
+      flex: 1; border-radius: 3px 3px 0 0;
+      background: var(--gray-2); transition: height 0.4s ease;
+    }
+    .preview-chart .cb.gold-bar { background: var(--gold); }
+    .preview-chart .cb.green-bar { background: rgba(47,158,68,0.55); }
 
-      /* Citas list */
-      .preview-citas-title {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--gray-4);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 8px;
-      }
-      .preview-cita {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 7px;
-        background: var(--gray-1);
-        border: 1px solid var(--gray-2);
-        margin-bottom: 6px;
-        font-size: 0.78rem;
-        color: var(--gray-5);
-      }
-      .preview-cita:last-child {
-        margin-bottom: 0;
-      }
-      .cita-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--gold);
-        flex-shrink: 0;
-      }
-      .cita-dot.green {
-        background: rgba(47, 158, 68, 0.8);
-      }
-      .cita-name {
-        font-weight: 600;
-        flex: 1;
-      }
-      .cita-badge {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        background: rgba(201, 168, 76, 0.12);
-        color: var(--gold-dk);
-        border-radius: 4px;
-        padding: 2px 7px;
-      }
-      .cita-badge.green {
-        background: rgba(47, 158, 68, 0.1);
-        color: #2a7d3a;
-      }
+    /* Citas list */
+    .preview-citas-title {
+      font-size: 0.72rem; font-weight: 600; color: var(--gray-4);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+    .preview-cita {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 7px;
+      background: var(--gray-1); border: 1px solid var(--gray-2);
+      margin-bottom: 6px; font-size: 0.78rem; color: var(--gray-5);
+    }
+    .preview-cita:last-child { margin-bottom: 0; }
+    .cita-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--gold); flex-shrink: 0;
+    }
+    .cita-dot.green { background: rgba(47,158,68,0.8); }
+    .cita-name { font-weight: 600; flex: 1; }
+    .cita-badge {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
+      background: rgba(201,168,76,0.12); color: var(--gold-dk);
+      border-radius: 4px; padding: 2px 7px;
+    }
+    .cita-badge.green { background: rgba(47,158,68,0.1); color: #2a7d3a; }
 
-      /* Caja bar */
-      .preview-caja {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--black);
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin-top: 12px;
-      }
-      .caja-dot-on {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #28c840;
-        box-shadow: 0 0 6px #28c840;
-        flex-shrink: 0;
-      }
-      .caja-label {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.6);
-        flex: 1;
-      }
-      .caja-val {
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: var(--gold);
-        font-family: var(--serif);
-      }
+    /* Caja bar */
+    .preview-caja {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--black); border-radius: 8px; padding: 10px 14px;
+      margin-top: 12px;
+    }
+    .caja-dot-on {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #28c840; box-shadow: 0 0 6px #28c840; flex-shrink: 0;
+    }
+    .caja-label { font-size: 0.75rem; color: rgba(255,255,255,0.6); flex: 1; }
+    .caja-val { font-size: 0.88rem; font-weight: 700; color: var(--gold); font-family: var(--serif); }
 
-      /* ── STATS STRIP ──────────────────────────────────────────────────── */
-      .stats-strip {
-        background: var(--black);
-        padding: 48px 32px;
-      }
-      .stats-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: grid;
-        align-items: center;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-      }
-      .stat-item {
-        text-align: center;
-        padding: 16px 24px;
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .stat-item:last-child {
-        border-right: none;
-      }
-      .stat-number {
-        font-family: var(--serif);
-        font-size: 2.4rem;
-        font-weight: 900;
-        color: var(--gold);
-        line-height: 1;
-        margin-bottom: 8px;
-      }
-      .stat-label {
-        font-size: 0.82rem;
-        color: rgba(255, 255, 255, 0.5);
-        font-weight: 400;
-        letter-spacing: 0.04em;
-      }
+    /* ── STATS STRIP ──────────────────────────────────────────────────── */
+    .stats-strip {
+      background: var(--black); padding: 48px 32px;
+    }
+    .stats-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 0;
+    }
+    .stat-item {
+      text-align: center; padding: 16px 24px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-number {
+      font-family: var(--serif); font-size: 2.4rem; font-weight: 900;
+      color: var(--gold); line-height: 1; margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 0.82rem; color: rgba(255,255,255,0.5);
+      font-weight: 400; letter-spacing: 0.04em;
+    }
 
-      /* ── FEATURES ─────────────────────────────────────────────────────── */
-      .features {
-        padding: 100px 32px;
-        background: var(--white);
-      }
-      .section-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      .section-eyebrow {
-        display: inline-block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--gold-dk);
-        margin-bottom: 16px;
-      }
-      .section-title {
-        font-family: var(--serif);
-        font-size: clamp(2rem, 4vw, 2.8rem);
-        font-weight: 900;
-        color: var(--black);
-        line-height: 1.15;
-        margin-bottom: 16px;
-      }
-      .section-sub {
-        font-size: 1rem;
-        color: var(--gray-4);
-        line-height: 1.7;
-        max-width: 560px;
-        font-weight: 300;
-        margin-bottom: 56px;
-      }
+    /* ── FEATURES ─────────────────────────────────────────────────────── */
+    .features { padding: 100px 32px; background: var(--white); }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-eyebrow {
+      display: inline-block;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--gold-dk);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: var(--serif); font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 900; color: var(--black); line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 1rem; color: var(--gray-4); line-height: 1.7;
+      max-width: 560px; font-weight: 300; margin-bottom: 56px;
+    }
 
-      .features-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
-      }
-      .feature-card {
-        background: var(--gray-1);
-        border: 1px solid var(--gray-2);
-        border-radius: 14px;
-        padding: 28px 26px;
-        transition: all var(--trans);
-        position: relative;
-        overflow: hidden;
-      }
-      .feature-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, var(--gold), transparent);
-        opacity: 0;
-        transition: opacity var(--trans);
-      }
-      .feature-card:hover {
-        border-color: rgba(201, 168, 76, 0.3);
-        transform: translateY(-3px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
-      }
-      .feature-card:hover::before {
-        opacity: 1;
-      }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;
+    }
+    .feature-card {
+      background: var(--gray-1); border: 1px solid var(--gray-2);
+      border-radius: 14px; padding: 28px 26px;
+      transition: all var(--trans); position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      opacity: 0; transition: opacity var(--trans);
+    }
+    .feature-card:hover { border-color: rgba(201,168,76,0.3); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.07); }
+    .feature-card:hover::before { opacity: 1; }
 
-      .feature-icon-wrap {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        background: var(--black);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 18px;
-      }
-      .feature-icon-wrap i {
-        font-size: 1.2rem;
-        color: var(--gold);
-      }
-      .feature-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--black);
-        margin-bottom: 10px;
-        font-family: var(--serif);
-      }
-      .feature-desc {
-        font-size: 0.875rem;
-        color: var(--gray-4);
-        line-height: 1.65;
-        font-weight: 300;
-      }
+    .feature-icon-wrap {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--black); display: flex; align-items: center;
+      justify-content: center; margin-bottom: 18px;
+    }
+    .feature-icon-wrap i { font-size: 1.2rem; color: var(--gold); }
+    .feature-title {
+      font-size: 1rem; font-weight: 700; color: var(--black);
+      margin-bottom: 10px; font-family: var(--serif);
+    }
+    .feature-desc {
+      font-size: 0.875rem; color: var(--gray-4); line-height: 1.65; font-weight: 300;
+    }
 
-      /* ── HOW IT WORKS ─────────────────────────────────────────────────── */
-      .how {
-        padding: 100px 32px;
-        background: var(--gray-1);
-      }
-      .how-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 80px;
-        align-items: center;
-      }
-      .how-steps {
-        display: flex;
-        flex-direction: column;
-        gap: 28px;
-      }
-      .how-step {
-        display: flex;
-        gap: 18px;
-        align-items: flex-start;
-      }
-      .how-step-num {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: var(--black);
-        color: var(--gold);
-        font-family: var(--serif);
-        font-size: 0.9rem;
-        font-weight: 900;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 2px;
-      }
-      .how-step-title {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--black);
-        margin-bottom: 5px;
-      }
-      .how-step-desc {
-        font-size: 0.85rem;
-        color: var(--gray-4);
-        line-height: 1.6;
-        font-weight: 300;
-      }
+    /* ── HOW IT WORKS ─────────────────────────────────────────────────── */
+    .how { padding: 100px 32px; background: var(--gray-1); }
+    .how-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+    }
+    .how-steps { display: flex; flex-direction: column; gap: 28px; }
+    .how-step { display: flex; gap: 18px; align-items: flex-start; }
+    .how-step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--black); color: var(--gold);
+      font-family: var(--serif); font-size: 0.9rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .how-step-title { font-size: 0.95rem; font-weight: 700; color: var(--black); margin-bottom: 5px; }
+    .how-step-desc { font-size: 0.85rem; color: var(--gray-4); line-height: 1.6; font-weight: 300; }
 
-      .how-visual {
-        background: var(--white);
-        border: 1px solid var(--gray-2);
-        border-radius: 16px;
-        padding: 28px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-      }
-      .how-visual-title {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--gray-4);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 18px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .how-visual-title i {
-        color: var(--gold);
-      }
-      .how-nomina-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--gray-2);
-        font-size: 0.83rem;
-      }
-      .how-nomina-row:last-child {
-        border-bottom: none;
-      }
-      .how-nomina-name {
-        font-weight: 600;
-        color: var(--black);
-      }
-      .how-nomina-detail {
-        color: var(--gray-4);
-        font-size: 0.78rem;
-      }
-      .how-nomina-amount {
-        font-family: var(--serif);
-        font-weight: 700;
-        color: var(--gold);
-      }
-      .how-nomina-total {
-        margin-top: 14px;
-        padding: 12px 16px;
-        background: var(--black);
-        border-radius: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .how-nomina-total-label {
-        font-size: 0.78rem;
-        color: rgba(255, 255, 255, 0.6);
-      }
-      .how-nomina-total-val {
-        font-family: var(--serif);
-        font-size: 1.1rem;
-        font-weight: 900;
-        color: var(--gold);
-      }
+    .how-visual {
+      background: var(--white); border: 1px solid var(--gray-2);
+      border-radius: 16px; padding: 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+    .how-visual-title {
+      font-size: 0.72rem; font-weight: 600; color: var(--gray-4);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .how-visual-title i { color: var(--gold); }
+    .how-nomina-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid var(--gray-2);
+      font-size: 0.83rem;
+    }
+    .how-nomina-row:last-child { border-bottom: none; }
+    .how-nomina-name { font-weight: 600; color: var(--black); }
+    .how-nomina-detail { color: var(--gray-4); font-size: 0.78rem; }
+    .how-nomina-amount { font-family: var(--serif); font-weight: 700; color: var(--gold); }
+    .how-nomina-total {
+      margin-top: 14px; padding: 12px 16px;
+      background: var(--black); border-radius: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .how-nomina-total-label { font-size: 0.78rem; color: rgba(255,255,255,0.6); }
+    .how-nomina-total-val { font-family: var(--serif); font-size: 1.1rem; font-weight: 900; color: var(--gold); }
 
-      /* ── PRICING ──────────────────────────────────────────────────────── */
-      .pricing {
-        padding: 100px 32px;
-        background: var(--white);
-      }
-      .pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        max-width: 960px;
-        margin: 0 auto;
-      }
-      .plan-card {
-        border: 1px solid var(--gray-2);
-        border-radius: 16px;
-        padding: 32px 26px;
-        position: relative;
-        overflow: hidden;
-        transition: all var(--trans);
-      }
-      .plan-card:hover {
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-        transform: translateY(-2px);
-      }
-      .plan-card.featured {
-        background: var(--black);
-        border-color: var(--black);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-      }
-      .plan-badge {
-        display: inline-block;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        background: var(--gold);
-        color: var(--black);
-        border-radius: 999px;
-        padding: 3px 12px;
-        margin-bottom: 16px;
-      }
-      .plan-name {
-        font-family: var(--serif);
-        font-size: 1.5rem;
-        font-weight: 900;
-        color: var(--black);
-        margin-bottom: 6px;
-      }
-      .plan-card.featured .plan-name {
-        color: var(--white);
-      }
-      .plan-price {
-        font-family: var(--serif);
-        font-size: 2.2rem;
-        font-weight: 900;
-        color: var(--black);
-        line-height: 1;
-        margin-bottom: 4px;
-      }
-      .plan-card.featured .plan-price {
-        color: var(--gold);
-      }
-      .plan-price span {
-        font-size: 1rem;
-        font-weight: 400;
-        color: var(--gray-4);
-        font-family: var(--sans);
-      }
-      .plan-card.featured .plan-price span {
-        color: rgba(255, 255, 255, 0.4);
-      }
-      .plan-desc {
-        font-size: 0.83rem;
-        color: var(--gray-4);
-        margin-bottom: 24px;
-        margin-top: 6px;
-      }
-      .plan-card.featured .plan-desc {
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .plan-divider {
-        height: 1px;
-        background: var(--gray-2);
-        margin-bottom: 22px;
-      }
-      .plan-card.featured .plan-divider {
-        background: rgba(255, 255, 255, 0.1);
-      }
-      .plan-features {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 11px;
-        margin-bottom: 28px;
-      }
-      .plan-features li {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.85rem;
-        color: var(--gray-5);
-        font-weight: 400;
-      }
-      .plan-card.featured .plan-features li {
-        color: rgba(255, 255, 255, 0.8);
-      }
-      .plan-features li i {
-        font-size: 0.85rem;
-        flex-shrink: 0;
-      }
-      .plan-features li .fi-ok {
-        color: var(--gold);
-      }
-      .plan-features li .fi-no {
-        color: var(--gray-3);
-      }
-      .plan-card.featured .plan-features li .fi-ok {
-        color: var(--gold-lt);
-      }
+    /* ── PRICING ──────────────────────────────────────────────────────── */
+    .pricing { padding: 100px 32px; background: var(--white); }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+      max-width: 960px; margin: 0 auto;
+    }
+    .plan-card {
+      border: 1px solid var(--gray-2); border-radius: 16px;
+      padding: 32px 26px; position: relative; overflow: hidden;
+      transition: all var(--trans);
+    }
+    .plan-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .plan-card.featured {
+      background: var(--black); border-color: var(--black);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+    }
+    .plan-badge {
+      display: inline-block;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; background: var(--gold);
+      color: var(--black); border-radius: 999px;
+      padding: 3px 12px; margin-bottom: 16px;
+    }
+    .plan-name {
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 900;
+      color: var(--black); margin-bottom: 6px;
+    }
+    .plan-card.featured .plan-name { color: var(--white); }
+    .plan-price {
+      font-family: var(--serif); font-size: 2.2rem; font-weight: 900;
+      color: var(--black); line-height: 1; margin-bottom: 4px;
+    }
+    .plan-card.featured .plan-price { color: var(--gold); }
+    .plan-price span { font-size: 1rem; font-weight: 400; color: var(--gray-4); font-family: var(--sans); }
+    .plan-card.featured .plan-price span { color: rgba(255,255,255,0.4); }
+    .plan-desc {
+      font-size: 0.83rem; color: var(--gray-4); margin-bottom: 24px; margin-top: 6px;
+    }
+    .plan-card.featured .plan-desc { color: rgba(255,255,255,0.5); }
+    .plan-divider { height: 1px; background: var(--gray-2); margin-bottom: 22px; }
+    .plan-card.featured .plan-divider { background: rgba(255,255,255,0.1); }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 28px; }
+    .plan-features li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; color: var(--gray-5); font-weight: 400;
+    }
+    .plan-card.featured .plan-features li { color: rgba(255,255,255,0.8); }
+    .plan-features li i { font-size: 0.85rem; flex-shrink: 0; }
+    .plan-features li .fi-ok { color: var(--gold); }
+    .plan-features li .fi-no { color: var(--gray-3); }
+    .plan-card.featured .plan-features li .fi-ok { color: var(--gold-lt); }
 
-      .btn-plan {
-        display: block;
-        text-align: center;
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 600;
-        padding: 12px 20px;
-        border-radius: var(--radius);
-        border: 1px solid var(--black);
-        color: var(--black);
-        background: transparent;
-        transition: all var(--trans);
-        letter-spacing: 0.01em;
-      }
-      .btn-plan:hover {
-        background: var(--black);
-        color: var(--white);
-      }
-      .btn-plan.gold {
-        background: var(--gold);
-        color: var(--black);
-        border-color: var(--gold);
-      }
-      .btn-plan.gold:hover {
-        background: var(--gold-lt);
-        border-color: var(--gold-lt);
-      }
+    .btn-plan {
+      display: block; text-align: center; text-decoration: none;
+      font-size: 0.875rem; font-weight: 600; padding: 12px 20px;
+      border-radius: var(--radius); border: 1px solid var(--black);
+      color: var(--black); background: transparent;
+      transition: all var(--trans); letter-spacing: 0.01em;
+    }
+    .btn-plan:hover { background: var(--black); color: var(--white); }
+    .btn-plan.gold {
+      background: var(--gold); color: var(--black); border-color: var(--gold);
+    }
+    .btn-plan.gold:hover { background: var(--gold-lt); border-color: var(--gold-lt); }
 
-      /* ── CONTACT ──────────────────────────────────────────────────────── */
-      .contact {
-        padding: 100px 32px;
-        background: var(--black);
-      }
-      .contact-inner {
-        max-width: 800px;
-        margin: 0 auto;
-        text-align: center;
-      }
-      .contact-eyebrow {
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 20px;
-        display: block;
-      }
-      .contact-title {
-        font-family: var(--serif);
-        font-size: clamp(1.8rem, 4vw, 2.6rem);
-        font-weight: 900;
-        color: var(--white);
-        line-height: 1.2;
-        margin-bottom: 18px;
-      }
-      .contact-sub {
-        font-size: 1rem;
-        color: rgba(255, 255, 255, 0.5);
-        line-height: 1.7;
-        font-weight: 300;
-        margin-bottom: 44px;
-      }
-      .contact-actions {
-        display: flex;
-        gap: 14px;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      .btn-wa {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: #25d366;
-        color: var(--white);
-        font-size: 0.95rem;
-        font-weight: 600;
-        padding: 14px 28px;
-        border-radius: var(--radius);
-        text-decoration: none;
-        transition: all var(--trans);
-      }
-      .btn-wa:hover {
-        background: #1db954;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
-      }
-      .btn-wa i {
-        font-size: 1.1rem;
-      }
-      .btn-contact-ghost {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: rgba(255, 255, 255, 0.06);
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.95rem;
-        font-weight: 500;
-        padding: 14px 28px;
-        border-radius: var(--radius);
-        text-decoration: none;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all var(--trans);
-      }
-      .btn-contact-ghost:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--white);
-      }
+    /* ── CONTACT ──────────────────────────────────────────────────────── */
+    .contact { padding: 100px 32px; background: var(--black); }
+    .contact-inner {
+      max-width: 800px; margin: 0 auto; text-align: center;
+    }
+    .contact-eyebrow {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 20px; display: block;
+    }
+    .contact-title {
+      font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900; color: var(--white); line-height: 1.2; margin-bottom: 18px;
+    }
+    .contact-sub {
+      font-size: 1rem; color: rgba(255,255,255,0.5); line-height: 1.7;
+      font-weight: 300; margin-bottom: 44px;
+    }
+    .contact-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-wa {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #25D366; color: var(--white);
+      font-size: 0.95rem; font-weight: 600; padding: 14px 28px;
+      border-radius: var(--radius); text-decoration: none;
+      transition: all var(--trans);
+    }
+    .btn-wa:hover { background: #1db954; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,211,102,0.3); }
+    .btn-wa i { font-size: 1.1rem; }
+    .btn-contact-ghost {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8);
+      font-size: 0.95rem; font-weight: 500; padding: 14px 28px;
+      border-radius: var(--radius); text-decoration: none; border: 1px solid rgba(255,255,255,0.1);
+      transition: all var(--trans);
+    }
+    .btn-contact-ghost:hover { background: rgba(255,255,255,0.1); color: var(--white); }
 
-      .contact-info {
-        margin-top: 48px;
-        padding-top: 40px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        display: flex;
-        gap: 40px;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      .contact-info-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .contact-info-item i {
-        color: var(--gold);
-        font-size: 1rem;
-      }
+    .contact-info {
+      margin-top: 48px; padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+    }
+    .contact-info-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; color: rgba(255,255,255,0.5);
+    }
+    .contact-info-item i { color: var(--gold); font-size: 1rem; }
 
-      /* ── FOOTER ───────────────────────────────────────────────────────── */
-      .footer {
-        background: #949494;
-        padding: 32px;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-      }
-      .footer-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 20px;
-      }
-      .footer-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-      }
-      .footer-logo .logo-text {
-        font-size: 1.1rem;
-        color: var(--white);
-      }
-      .footer-copy {
-        font-size: 0.78rem;
-        color: rgba(255, 255, 255, 0.3);
-      }
-      .footer-links {
-        display: flex;
-        gap: 24px;
-      }
-      .footer-links a {
-        font-size: 0.78rem;
-        color: rgba(255, 255, 255, 0.35);
-        text-decoration: none;
-        transition: color var(--trans);
-      }
-      .footer-links a:hover {
-        color: rgba(255, 255, 255, 0.7);
-      }
+    /* ── FOOTER ───────────────────────────────────────────────────────── */
+    .footer {
+      background: #050505; padding: 32px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px;
+    }
+    .footer-logo {
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .footer-logo .logo-text { font-size: 1.1rem; color: var(--white); }
+    .footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-size: 0.78rem; color: rgba(255,255,255,0.35);
+      text-decoration: none; transition: color var(--trans);
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
 
-      /* ── RESPONSIVE ───────────────────────────────────────────────────── */
-      @media (max-width: 1024px) {
-        .features-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .pricing-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .stats-inner {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .stat-item:nth-child(2) {
-          border-right: none;
-        }
-        .stat-item:nth-child(3) {
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-      }
-      @media (max-width: 768px) {
-        .nav-links,
-        .nav-cta {
-          display: none;
-        }
-        .nav-burger {
-          display: flex;
-          margin-left: auto;
-        }
-        .hero-inner {
-          grid-template-columns: 1fr;
-          gap: 48px;
-        }
-        .preview-card {
-          transform: none;
-        }
-        .preview-wrap::before {
-          display: none;
-        }
-        .features-grid {
-          grid-template-columns: 1fr;
-        }
-        .pricing-grid {
-          grid-template-columns: 1fr;
-        }
-        .how-inner {
-          grid-template-columns: 1fr;
-          gap: 48px;
-        }
-        .stats-inner {
-          grid-template-columns: 1fr 1fr;
-        }
-        .hero {
-          padding: 100px 24px 60px;
-        }
-        .features,
-        .how,
-        .pricing,
-        .contact {
-          padding: 72px 24px;
-        }
-      }
-      @media (max-width: 480px) {
-        .stats-inner {
-          grid-template-columns: 1fr;
-        }
-        .stat-item {
-          border-right: none;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .stat-item:first-child {
-          border-top: none;
-        }
-        .hero-title {
-          font-size: 2.4rem;
-        }
-        .contact-actions {
-          flex-direction: column;
-          align-items: stretch;
-        }
-        .btn-wa,
-        .btn-contact-ghost {
-          justify-content: center;
-        }
-      }
+    /* ── RESPONSIVE ───────────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2,1fr); }
+      .pricing-grid  { grid-template-columns: repeat(2,1fr); }
+      .stats-inner   { grid-template-columns: repeat(2,1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      .stat-item:nth-child(3) { border-top: 1px solid rgba(255,255,255,0.08); }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .nav-burger { display: flex; margin-left: auto; }
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+      .preview-card { transform: none; }
+      .preview-wrap::before { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .pricing-grid  { grid-template-columns: 1fr; }
+      .how-inner     { grid-template-columns: 1fr; gap: 48px; }
+      .stats-inner   { grid-template-columns: 1fr 1fr; }
+      .hero { padding: 100px 24px 60px; }
+      .features, .how, .pricing, .contact { padding: 72px 24px; }
+    }
+    @media (max-width: 480px) {
+      .stats-inner { grid-template-columns: 1fr; }
+      .stat-item { border-right: none; border-top: 1px solid rgba(255,255,255,0.08); }
+      .stat-item:first-child { border-top: none; }
+      .hero-title { font-size: 2.4rem; }
+      .contact-actions { flex-direction: column; align-items: stretch; }
+      .btn-wa, .btn-contact-ghost { justify-content: center; }
+    }
 
-      /* ── SCROLL ANIMATIONS ────────────────────────────────────────────── */
-      .fade-up {
-        opacity: 0;
-        transform: translateY(28px);
-        transition:
-          opacity 0.6s ease,
-          transform 0.6s ease;
-      }
-      .fade-up.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    </style>
-  </head>
-  <body>
-    <!-- NAV -->
-    <nav class="nav">
-      <div class="nav-inner">
-        <a href="/" class="logo">
-          <img src="assets/logo.svg" alt="FullFade" class="logo-img" />
+    /* ── SCROLL ANIMATIONS ────────────────────────────────────────────── */
+    .fade-up {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0"><rect width="36" height="36" rx="8" fill="#0a0a0a"/><text x="5" y="26" font-family="Georgia,serif" font-size="20" font-weight="700" fill="white">F</text><text x="19" y="26" font-family="Georgia,serif" font-size="15" font-style="italic" fill="white">f</text></svg>
+      <span class="logo-text">Full<span>Fade</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Funciones</a>
+      <a href="#how">Cómo funciona</a>
+      <a href="#pricing">Planes</a>
+      <a href="#contact">Contacto</a>
+    </div>
+    <div class="nav-cta">
+      <a href="src/pages/login.html" class="btn-nav-ghost">Iniciar sesión</a>
+      <a href="src/pages/register.html" class="btn-nav-cta">Registrar barbería</a>
+    </div>
+    <button class="nav-burger" id="navBurger" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="#features">Funciones</a>
+    <a href="#how">Cómo funciona</a>
+    <a href="#pricing">Planes</a>
+    <a href="#contact">Contacto</a>
+    <a href="src/pages/login.html">Iniciar sesión</a>
+    <a href="src/pages/register.html" class="btn-mobile-cta">Registrar barbería</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">
+        <i class="bi bi-geo-alt-fill"></i>
+        Hecho para barberías en Colombia
+      </div>
+      <h1 class="hero-title">
+        <span class="hero-title-line">El control total</span>
+        <span class="hero-title-accent">de tu barbería</span>
+        <span class="hero-title-line">en un solo lugar</span>
+      </h1>
+      <p class="hero-sub">
+        Caja diaria, agenda de citas, gestión de barberos, reportes financieros y nóminas.
+        FullFade centraliza la operación de tu negocio para que puedas enfocarte en lo que importa.
+      </p>
+      <div class="hero-actions">
+        <a href="src/pages/register.html" class="btn-hero-primary">
+          Comenzar gratis
+          <i class="bi bi-arrow-right"></i>
         </a>
-        <div class="nav-links">
-          <a href="#features">Funciones</a>
-          <a href="#how">Cómo funciona</a>
-          <a href="#pricing">Planes</a>
-          <a href="#contact">Contacto</a>
-        </div>
-        <div class="nav-cta">
-          <a href="src/pages/login.html" class="btn-nav-ghost"
-            >Iniciar sesión</a
-          >
-          <a href="src/pages/register.html" class="btn-nav-cta"
-            >Registrar barbería</a
-          >
-        </div>
-        <button class="nav-burger" id="navBurger" aria-label="Menú">
-          <span></span><span></span><span></span>
-        </button>
+        <a href="#features" class="btn-hero-secondary">
+          <i class="bi bi-play-circle"></i>
+          Ver funciones
+        </a>
       </div>
-      <div class="nav-mobile" id="navMobile">
-        <a href="#features">Funciones</a>
-        <a href="#how">Cómo funciona</a>
-        <a href="#pricing">Planes</a>
-        <a href="#contact">Contacto</a>
-        <a href="src/pages/login.html">Iniciar sesión</a>
-        <a href="src/pages/register.html" class="btn-mobile-cta"
-          >Registrar barbería</a
-        >
-      </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero" id="home">
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <div class="hero-eyebrow">
-            <i class="bi bi-geo-alt-fill"></i>
-            Hecho para barberías en Colombia
-          </div>
-          <h1 class="hero-title">
-            <span class="hero-title-line">El control total</span>
-            <span class="hero-title-accent">de tu barbería</span>
-            <span class="hero-title-line">en un solo lugar</span>
-          </h1>
-          <p class="hero-sub">
-            Caja diaria, agenda de citas, gestión de barberos, reportes
-            financieros y nóminas. FullFade centraliza la operación de tu
-            negocio para que puedas enfocarte en lo que importa.
-          </p>
-          <div class="hero-actions">
-            <a href="src/pages/register.html" class="btn-hero-primary">
-              Comenzar gratis
-              <i class="bi bi-arrow-right"></i>
-            </a>
-            <a href="#features" class="btn-hero-secondary">
-              <i class="bi bi-play-circle"></i>
-              Ver funciones
-            </a>
-          </div>
-          <div class="hero-trust">
-            <div class="hero-trust-item">
-              <i class="bi bi-check-circle-fill"></i>
-              <span>14 días de prueba sin costo</span>
-            </div>
-            <div class="hero-trust-item">
-              <i class="bi bi-check-circle-fill"></i>
-              <span>Sin tarjeta de crédito</span>
-            </div>
-            <div class="hero-trust-item">
-              <i class="bi bi-check-circle-fill"></i>
-              <span>Datos protegidos con Firebase</span>
-            </div>
-          </div>
+      <div class="hero-trust">
+        <div class="hero-trust-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>14 días de prueba sin costo</span>
         </div>
-
-        <!-- Dashboard preview -->
-        <div class="preview-wrap">
-          <div class="preview-card">
-            <div class="preview-titlebar">
-              <div class="preview-dots">
-                <span></span><span></span><span></span>
-              </div>
-              <div class="preview-url">app.fullfade.co · Dashboard</div>
-            </div>
-            <div class="preview-body">
-              <div class="preview-kpis">
-                <div class="pkpi">
-                  <div class="pkpi-val gold">$1.840K</div>
-                  <div class="pkpi-lbl">Ingresos hoy</div>
-                </div>
-                <div class="pkpi">
-                  <div class="pkpi-val">18</div>
-                  <div class="pkpi-lbl">Citas</div>
-                </div>
-                <div class="pkpi">
-                  <div class="pkpi-val">5</div>
-                  <div class="pkpi-lbl">Barberos</div>
-                </div>
-              </div>
-
-              <div class="preview-chart-wrap">
-                <div class="preview-chart-title">
-                  <i class="bi bi-bar-chart-fill"></i>
-                  Ingresos últimos 7 días
-                </div>
-                <div class="preview-chart">
-                  <div class="cb" style="height: 38%"></div>
-                  <div class="cb green-bar" style="height: 55%"></div>
-                  <div class="cb" style="height: 42%"></div>
-                  <div class="cb green-bar" style="height: 68%"></div>
-                  <div class="cb" style="height: 50%"></div>
-                  <div class="cb green-bar" style="height: 82%"></div>
-                  <div class="cb gold-bar" style="height: 72%"></div>
-                </div>
-              </div>
-
-              <div class="preview-citas-title">
-                <i class="bi bi-calendar-check"></i>
-                Próximas citas
-              </div>
-              <div class="preview-cita">
-                <div class="cita-dot"></div>
-                <div class="cita-name">Carlos M.</div>
-                <div>Fade completo</div>
-                <div class="cita-badge">10:30</div>
-              </div>
-              <div class="preview-cita">
-                <div class="cita-dot green"></div>
-                <div class="cita-name">Juan P.</div>
-                <div>Corte + barba</div>
-                <div class="cita-badge green">11:00</div>
-              </div>
-              <div class="preview-cita">
-                <div class="cita-dot"></div>
-                <div class="cita-name">Sebastián R.</div>
-                <div>Barba perfilada</div>
-                <div class="cita-badge">11:30</div>
-              </div>
-
-              <div class="preview-caja">
-                <div class="caja-dot-on"></div>
-                <div class="caja-label">Caja abierta · saldo actual</div>
-                <div class="caja-val">$1.450.000</div>
-              </div>
-            </div>
-          </div>
+        <div class="hero-trust-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>Sin tarjeta de crédito</span>
         </div>
-      </div>
-    </section>
-
-    <!-- STATS STRIP -->
-    <div class="stats-strip">
-      <div class="stats-inner">
-        <div class="stat-item fade-up">
-          <div class="stat-number">14</div>
-          <div class="stat-label">Días de prueba gratuita</div>
-        </div>
-        <div class="stat-item fade-up" style="transition-delay: 0.2s">
-          <div class="stat-number">100%</div>
-          <div class="stat-label">Datos en tiempo real</div>
-        </div>
-        <div class="stat-item fade-up" style="transition-delay: 0.3s">
-          <div class="stat-number">5 min</div>
-          <div class="stat-label">Para comenzar a operar</div>
+        <div class="hero-trust-item">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>Datos protegidos con Firebase</span>
         </div>
       </div>
     </div>
 
-    <!-- FEATURES -->
-    <section class="features" id="features">
-      <div class="section-inner">
-        <div class="fade-up">
-          <span class="section-eyebrow">Funcionalidades</span>
-          <h2 class="section-title">Una plataforma. Toda tu operación.</h2>
-          <p class="section-sub">
-            Diseñada con base en el flujo real de trabajo de una barbería
-            colombiana. Sin funciones innecesarias, sin curvas de aprendizaje
-            complicadas.
-          </p>
+    <!-- Dashboard preview -->
+    <div class="preview-wrap">
+      <div class="preview-card">
+        <div class="preview-titlebar">
+          <div class="preview-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="preview-url">app.fullfade.co · Dashboard</div>
         </div>
-
-        <div class="features-grid">
-          <div class="feature-card fade-up">
-            <div class="feature-icon-wrap">
-              <i class="bi bi-safe2"></i>
+        <div class="preview-body">
+          <div class="preview-kpis">
+            <div class="pkpi">
+              <div class="pkpi-val gold">$1.840K</div>
+              <div class="pkpi-lbl">Ingresos hoy</div>
             </div>
-            <div class="feature-title">Control de Caja Diario</div>
-            <p class="feature-desc">
-              Abre y cierra caja con saldo inicial, registra ingresos y egresos
-              con concepto, y visualiza el balance del día en tiempo real. El
-              indicador de caja abierta o cerrada siempre visible.
-            </p>
+            <div class="pkpi">
+              <div class="pkpi-val">18</div>
+              <div class="pkpi-lbl">Citas</div>
+            </div>
+            <div class="pkpi">
+              <div class="pkpi-val">5</div>
+              <div class="pkpi-lbl">Barberos</div>
+            </div>
           </div>
 
-          <div class="feature-card fade-up" style="transition-delay: 0.08s">
-            <div class="feature-icon-wrap">
-              <i class="bi bi-calendar-check"></i>
+          <div class="preview-chart-wrap">
+            <div class="preview-chart-title">
+              <i class="bi bi-bar-chart-fill"></i>
+              Ingresos últimos 7 días
             </div>
-            <div class="feature-title">Agenda de Citas</div>
-            <p class="feature-desc">
-              Programa citas para clientes nuevos o existentes, asigna barbero y
-              servicio. El sistema bloquea fechas y horas pasadas, y muestra un
-              conteo en tiempo real de las citas del día.
-            </p>
+            <div class="preview-chart">
+              <div class="cb" style="height:38%"></div>
+              <div class="cb green-bar" style="height:55%"></div>
+              <div class="cb" style="height:42%"></div>
+              <div class="cb green-bar" style="height:68%"></div>
+              <div class="cb" style="height:50%"></div>
+              <div class="cb green-bar" style="height:82%"></div>
+              <div class="cb gold-bar" style="height:72%"></div>
+            </div>
           </div>
 
-          <div class="feature-card fade-up" style="transition-delay: 0.16s">
-            <div class="feature-icon-wrap">
-              <i class="bi bi-people"></i>
-            </div>
-            <div class="feature-title">Gestión de Clientes</div>
-            <p class="feature-desc">
-              Registra clientes con nombre, teléfono y notas. Cada cita
-              completada suma una visita automáticamente. Contacta a cualquier
-              cliente por WhatsApp directo desde la plataforma.
-            </p>
+          <div class="preview-citas-title">
+            <i class="bi bi-calendar-check"></i>
+            Próximas citas
+          </div>
+          <div class="preview-cita">
+            <div class="cita-dot"></div>
+            <div class="cita-name">Carlos M.</div>
+            <div>Fade completo</div>
+            <div class="cita-badge">10:30</div>
+          </div>
+          <div class="preview-cita">
+            <div class="cita-dot green"></div>
+            <div class="cita-name">Juan P.</div>
+            <div>Corte + barba</div>
+            <div class="cita-badge green">11:00</div>
+          </div>
+          <div class="preview-cita">
+            <div class="cita-dot"></div>
+            <div class="cita-name">Sebastián R.</div>
+            <div>Barba perfilada</div>
+            <div class="cita-badge">11:30</div>
           </div>
 
-          <div class="feature-card fade-up" style="transition-delay: 0.04s">
-            <div class="feature-icon-wrap">
-              <i class="bi bi-person-badge"></i>
-            </div>
-            <div class="feature-title">Gestión de Barberos</div>
-            <p class="feature-desc">
-              Agrega tu equipo, asigna especialidades y da de baja a barberos
-              sin perder su historial. Los cortes y citas anteriores quedan
-              vinculados aunque el barbero ya no esté activo.
-            </p>
-          </div>
-
-          <div class="feature-card fade-up" style="transition-delay: 0.12s">
-            <div class="feature-icon-wrap">
-              <i class="bi bi-graph-up-arrow"></i>
-            </div>
-            <div class="feature-title">Reportes Financieros</div>
-            <p class="feature-desc">
-              Visualiza ingresos del mes, el mejor día, servicios realizados y
-              clientes nuevos. Exporta la tabla detallada en CSV compatible con
-              Excel. Gráfica de crecimiento de los últimos 7 días.
-            </p>
-          </div>
-
-          <div class="feature-card fade-up" style="transition-delay: 0.2s">
-            <div class="feature-icon-wrap">
-              <i class="bi bi-receipt-cutoff"></i>
-            </div>
-            <div class="feature-title">Liquidación de Nómina</div>
-            <p class="feature-desc">
-              Genera el PDF de nómina por barbero para cualquier período. Define
-              el porcentaje de comisión, visualiza cada corte realizado y obtén
-              el monto exacto a pagar. Con línea de firma incluida.
-            </p>
+          <div class="preview-caja">
+            <div class="caja-dot-on"></div>
+            <div class="caja-label">Caja abierta · saldo actual</div>
+            <div class="caja-val">$1.450.000</div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-    <!-- HOW IT WORKS -->
-    <section class="how" id="how">
-      <div class="how-inner">
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item fade-up">
+      <div class="stat-number">14</div>
+      <div class="stat-label">Días de prueba gratuita</div>
+    </div>
+    <div class="stat-item fade-up" style="transition-delay:0.1s">
+      <div class="stat-number">8</div>
+      <div class="stat-label">Módulos integrados</div>
+    </div>
+    <div class="stat-item fade-up" style="transition-delay:0.2s">
+      <div class="stat-number">100%</div>
+      <div class="stat-label">Datos en tiempo real</div>
+    </div>
+    <div class="stat-item fade-up" style="transition-delay:0.3s">
+      <div class="stat-number">5 min</div>
+      <div class="stat-label">Para comenzar a operar</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="fade-up">
+      <span class="section-eyebrow">Funcionalidades</span>
+      <h2 class="section-title">Una plataforma. Toda tu operación.</h2>
+      <p class="section-sub">
+        Diseñada con base en el flujo real de trabajo de una barbería colombiana.
+        Sin funciones innecesarias, sin curvas de aprendizaje complicadas.
+      </p>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feature-card fade-up">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-safe2"></i>
+        </div>
+        <div class="feature-title">Control de Caja Diario</div>
+        <p class="feature-desc">
+          Abre y cierra caja con saldo inicial, registra ingresos y egresos con concepto, y visualiza el balance del día en tiempo real. El indicador de caja abierta o cerrada siempre visible.
+        </p>
+      </div>
+
+      <div class="feature-card fade-up" style="transition-delay:0.08s">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-calendar-check"></i>
+        </div>
+        <div class="feature-title">Agenda de Citas</div>
+        <p class="feature-desc">
+          Programa citas para clientes nuevos o existentes, asigna barbero y servicio. El sistema bloquea fechas y horas pasadas, y muestra un conteo en tiempo real de las citas del día.
+        </p>
+      </div>
+
+      <div class="feature-card fade-up" style="transition-delay:0.16s">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-people"></i>
+        </div>
+        <div class="feature-title">Gestión de Clientes</div>
+        <p class="feature-desc">
+          Registra clientes con nombre, teléfono y notas. Cada cita completada suma una visita automáticamente. Contacta a cualquier cliente por WhatsApp directo desde la plataforma.
+        </p>
+      </div>
+
+      <div class="feature-card fade-up" style="transition-delay:0.04s">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-person-badge"></i>
+        </div>
+        <div class="feature-title">Gestión de Barberos</div>
+        <p class="feature-desc">
+          Agrega tu equipo, asigna especialidades y da de baja a barberos sin perder su historial. Los cortes y citas anteriores quedan vinculados aunque el barbero ya no esté activo.
+        </p>
+      </div>
+
+      <div class="feature-card fade-up" style="transition-delay:0.12s">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div class="feature-title">Reportes Financieros</div>
+        <p class="feature-desc">
+          Visualiza ingresos del mes, el mejor día, servicios realizados y clientes nuevos. Exporta la tabla detallada en CSV compatible con Excel. Gráfica de crecimiento de los últimos 7 días.
+        </p>
+      </div>
+
+      <div class="feature-card fade-up" style="transition-delay:0.2s">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-receipt-cutoff"></i>
+        </div>
+        <div class="feature-title">Liquidación de Nómina</div>
+        <p class="feature-desc">
+          Genera el PDF de nómina por barbero para cualquier período. Define el porcentaje de comisión, visualiza cada corte realizado y obtén el monto exacto a pagar. Con línea de firma incluida.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div>
+      <span class="section-eyebrow fade-up">Cómo funciona</span>
+      <h2 class="section-title fade-up">Operando desde el primer día</h2>
+      <p class="section-sub fade-up">
+        No necesitas conocimientos técnicos. Si puedes manejar WhatsApp, puedes manejar FullFade.
+      </p>
+      <div class="how-steps">
+        <div class="how-step fade-up">
+          <div class="how-step-num">1</div>
+          <div>
+            <div class="how-step-title">Registra tu barbería</div>
+            <div class="how-step-desc">Crea tu cuenta con el nombre del negocio, tu correo y una contraseña. En menos de 2 minutos tu barbería está activa con 14 días de prueba gratuita.</div>
+          </div>
+        </div>
+        <div class="how-step fade-up" style="transition-delay:0.1s">
+          <div class="how-step-num">2</div>
+          <div>
+            <div class="how-step-title">Configura tu equipo y servicios</div>
+            <div class="how-step-desc">Agrega tus barberos con su especialidad y registra los servicios con precio y duración. La plataforma los conecta automáticamente en la agenda.</div>
+          </div>
+        </div>
+        <div class="how-step fade-up" style="transition-delay:0.2s">
+          <div class="how-step-num">3</div>
+          <div>
+            <div class="how-step-title">Abre la caja y comienza a operar</div>
+            <div class="how-step-desc">Cada día abres la caja con el saldo inicial, registras los movimientos y al final cierras. Todo queda en el historial para reportes futuros.</div>
+          </div>
+        </div>
+        <div class="how-step fade-up" style="transition-delay:0.3s">
+          <div class="how-step-num">4</div>
+          <div>
+            <div class="how-step-title">Genera nóminas y reportes al mes</div>
+            <div class="how-step-desc">Al cierre del período seleccionas el barbero, defines el porcentaje y en segundos tienes el PDF de liquidación listo para imprimir o enviar.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="how-visual fade-up">
+      <div class="how-visual-title">
+        <i class="bi bi-receipt-cutoff"></i>
+        Liquidación de Nómina — Vista previa
+      </div>
+      <div class="how-nomina-row">
         <div>
-          <span class="section-eyebrow fade-up">Cómo funciona</span>
-          <h2 class="section-title fade-up">Operando desde el primer día</h2>
-          <p class="section-sub fade-up">
-            No necesitas conocimientos técnicos. Si puedes manejar WhatsApp,
-            puedes manejar FullFade.
-          </p>
-          <div class="how-steps">
-            <div class="how-step fade-up">
-              <div class="how-step-num">1</div>
-              <div>
-                <div class="how-step-title">Registra tu barbería</div>
-                <div class="how-step-desc">
-                  Crea tu cuenta con el nombre del negocio, tu correo y una
-                  contraseña. En menos de 2 minutos tu barbería está activa con
-                  14 días de prueba gratuita.
-                </div>
-              </div>
-            </div>
-            <div class="how-step fade-up" style="transition-delay: 0.1s">
-              <div class="how-step-num">2</div>
-              <div>
-                <div class="how-step-title">
-                  Configura tu equipo y servicios
-                </div>
-                <div class="how-step-desc">
-                  Agrega tus barberos con su especialidad y registra los
-                  servicios con precio y duración. La plataforma los conecta
-                  automáticamente en la agenda.
-                </div>
-              </div>
-            </div>
-            <div class="how-step fade-up" style="transition-delay: 0.2s">
-              <div class="how-step-num">3</div>
-              <div>
-                <div class="how-step-title">
-                  Abre la caja y comienza a operar
-                </div>
-                <div class="how-step-desc">
-                  Cada día abres la caja con el saldo inicial, registras los
-                  movimientos y al final cierras. Todo queda en el historial
-                  para reportes futuros.
-                </div>
-              </div>
-            </div>
-            <div class="how-step fade-up" style="transition-delay: 0.3s">
-              <div class="how-step-num">4</div>
-              <div>
-                <div class="how-step-title">
-                  Genera nóminas y reportes al mes
-                </div>
-                <div class="how-step-desc">
-                  Al cierre del período seleccionas el barbero, defines el
-                  porcentaje y en segundos tienes el PDF de liquidación listo
-                  para imprimir o enviar.
-                </div>
-              </div>
-            </div>
-          </div>
+          <div class="how-nomina-name">Miguel Torres</div>
+          <div class="how-nomina-detail">Fade completo · 19 may</div>
         </div>
-
-        <div class="how-visual fade-up">
-          <div class="how-visual-title">
-            <i class="bi bi-receipt-cutoff"></i>
-            Liquidación de Nómina — Vista previa
-          </div>
-          <div class="how-nomina-row">
-            <div>
-              <div class="how-nomina-name">Miguel Torres</div>
-              <div class="how-nomina-detail">Fade completo · 19 may</div>
-            </div>
-            <div class="how-nomina-amount">$17.500</div>
-          </div>
-          <div class="how-nomina-row">
-            <div>
-              <div class="how-nomina-name">Miguel Torres</div>
-              <div class="how-nomina-detail">Corte + barba · 20 may</div>
-            </div>
-            <div class="how-nomina-amount">$22.500</div>
-          </div>
-          <div class="how-nomina-row">
-            <div>
-              <div class="how-nomina-name">Miguel Torres</div>
-              <div class="how-nomina-detail">Barba perfilada · 21 may</div>
-            </div>
-            <div class="how-nomina-amount">$10.000</div>
-          </div>
-          <div class="how-nomina-row">
-            <div>
-              <div class="how-nomina-name">Miguel Torres</div>
-              <div class="how-nomina-detail">Fade clásico · 21 may</div>
-            </div>
-            <div class="how-nomina-amount">$12.500</div>
-          </div>
-          <div class="how-nomina-total">
-            <div class="how-nomina-total-label">A pagar · comisión 50%</div>
-            <div class="how-nomina-total-val">$62.500</div>
-          </div>
-        </div>
+        <div class="how-nomina-amount">$17.500</div>
       </div>
-    </section>
-
-    <!-- PRICING -->
-    <section class="pricing" id="pricing">
-      <div class="section-inner">
-        <div style="text-align: center; margin-bottom: 56px" class="fade-up">
-          <span class="section-eyebrow">Planes</span>
-          <h2 class="section-title">Claro y sin letras pequeñas</h2>
-          <p class="section-sub" style="margin: 0 auto">
-            Comienza gratis por 14 días. Cuando veas el valor que aporta, elige
-            el plan que más se adapte a tu negocio.
-          </p>
+      <div class="how-nomina-row">
+        <div>
+          <div class="how-nomina-name">Miguel Torres</div>
+          <div class="how-nomina-detail">Corte + barba · 20 may</div>
         </div>
-
-        <div class="pricing-grid">
-          <div class="plan-card fade-up">
-            <div class="plan-name">Trial</div>
-            <div class="plan-price">Gratis <span></span></div>
-            <div class="plan-desc">14 días · Para conocer la plataforma</div>
-            <div class="plan-divider"></div>
-            <ul class="plan-features">
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Hasta 2 barberos activos
-              </li>
-              <li><i class="bi bi-check-lg fi-ok"></i> Hasta 30 clientes</li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Control de caja completo
-              </li>
-              <li><i class="bi bi-check-lg fi-ok"></i> Agenda de citas</li>
-              <li><i class="bi bi-x-lg fi-no"></i> Reportes avanzados</li>
-              <li><i class="bi bi-x-lg fi-no"></i> Exportar CSV y PDF</li>
-              <li><i class="bi bi-x-lg fi-no"></i> Liquidación de nómina</li>
-            </ul>
-            <a href="src/pages/register.html" class="btn-plan"
-              >Comenzar gratis</a
-            >
-          </div>
-
-          <div
-            class="plan-card featured fade-up"
-            style="transition-delay: 0.1s"
-          >
-            <div class="plan-badge">Más popular</div>
-            <div class="plan-name" style="color: #fff">Pro</div>
-            <div class="plan-price">$79.000 <span>/mes</span></div>
-            <div class="plan-desc">Para barberías en operación activa</div>
-            <div class="plan-divider"></div>
-            <ul class="plan-features">
-              <li><i class="bi bi-check-lg fi-ok"></i> Barberos ilimitados</li>
-              <li><i class="bi bi-check-lg fi-ok"></i> Clientes ilimitados</li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Control de caja completo
-              </li>
-              <li><i class="bi bi-check-lg fi-ok"></i> Agenda de citas</li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Reportes con gráficas
-              </li>
-              <li><i class="bi bi-check-lg fi-ok"></i> Exportar CSV y PDF</li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Liquidación de nómina en
-                PDF
-              </li>
-            </ul>
-            <a href="src/pages/register.html" class="btn-plan gold"
-              >Empezar ahora</a
-            >
-          </div>
-
-          <div class="plan-card fade-up" style="transition-delay: 0.2s">
-            <div class="plan-name">Empresa</div>
-            <div class="plan-price">Personalizado <span></span></div>
-            <div class="plan-desc">Para cadenas con múltiples sucursales</div>
-            <div class="plan-divider"></div>
-            <ul class="plan-features">
-              <li><i class="bi bi-check-lg fi-ok"></i> Todo lo del plan Pro</li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Gestión multi-sucursal
-              </li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Reportes consolidados
-              </li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Integración con WhatsApp
-              </li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Gerente de cuenta dedicado
-              </li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Capacitación presencial
-              </li>
-              <li>
-                <i class="bi bi-check-lg fi-ok"></i> Soporte prioritario 24/7
-              </li>
-            </ul>
-            <a
-              href="https://wa.me/573028016519?text=Hola%2C+me+interesa+el+plan+Empresa+de+FullFade"
-              target="_blank"
-              class="btn-plan"
-              >Contactar ventas</a
-            >
-          </div>
-        </div>
+        <div class="how-nomina-amount">$22.500</div>
       </div>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="contact" id="contact">
-      <div class="contact-inner">
-        <span class="contact-eyebrow fade-up">Soporte y Contacto</span>
-        <h2 class="contact-title fade-up">
-          ¿Tienes preguntas?<br />Estamos disponibles.
-        </h2>
-        <p class="contact-sub fade-up">
-          Nuestro equipo responde en menos de 24 horas. Para consultas urgentes
-          escríbenos directamente por WhatsApp y te atendemos al instante.
-        </p>
-        <div class="contact-actions fade-up">
-          <a
-            href="https://wa.me/573028016519?text=Hola%2C+me+interesa+FullFade+para+mi+barber%C3%ADa"
-            target="_blank"
-            class="btn-wa"
-          >
-            <i class="bi bi-whatsapp"></i>
-            Escribir por WhatsApp
-          </a>
-          <a href="mailto:soportefullfade@gmail.com" class="btn-contact-ghost">
-            <i class="bi bi-envelope"></i>
-            soportefullfade@gmail.com
-          </a>
+      <div class="how-nomina-row">
+        <div>
+          <div class="how-nomina-name">Miguel Torres</div>
+          <div class="how-nomina-detail">Barba perfilada · 21 may</div>
         </div>
-        <div class="contact-info fade-up">
-          <div class="contact-info-item">
-            <i class="bi bi-geo-alt"></i>
-            <span>Colombia</span>
-          </div>
-        </div>
+        <div class="how-nomina-amount">$10.000</div>
       </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="footer">
-      <div class="footer-inner">
-        <a href="/" class="footer-logo">
-          <img src="assets/logo.svg" alt="FullFade" class="logo-img" style="height:32px;width:auto;" />
-        </a>
-        <p class="footer-copy">
-          © 2026 FullFade. Software de gestión para barberías en Colombia.
-        </p>
-        <div class="footer-links">
-          <a href="src/pages/login.html">Iniciar sesión</a>
-          <a href="src/pages/register.html">Registrarse</a>
-          <a href="https://wa.me/573028016519" target="_blank">Soporte</a>
+      <div class="how-nomina-row">
+        <div>
+          <div class="how-nomina-name">Miguel Torres</div>
+          <div class="how-nomina-detail">Fade clásico · 21 may</div>
         </div>
+        <div class="how-nomina-amount">$12.500</div>
       </div>
-    </footer>
+      <div class="how-nomina-total">
+        <div class="how-nomina-total-label">A pagar · comisión 50%</div>
+        <div class="how-nomina-total-val">$62.500</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <script>
-      // Mobile nav
-      const burger = document.getElementById("navBurger");
-      const mobile = document.getElementById("navMobile");
-      burger.addEventListener("click", () => {
-        mobile.classList.toggle("open");
-      });
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:56px" class="fade-up">
+      <span class="section-eyebrow">Planes</span>
+      <h2 class="section-title">Claro y sin letras pequeñas</h2>
+      <p class="section-sub" style="margin: 0 auto">
+        Comienza gratis por 14 días. Cuando veas el valor que aporta, elige el plan que más se adapte a tu negocio.
+      </p>
+    </div>
 
-      // Close mobile nav on link click
-      mobile.querySelectorAll("a").forEach((a) => {
-        a.addEventListener("click", () => mobile.classList.remove("open"));
-      });
+    <div class="pricing-grid">
 
-      // Smooth close on outside click
-      document.addEventListener("click", (e) => {
-        if (!burger.contains(e.target) && !mobile.contains(e.target)) {
-          mobile.classList.remove("open");
-        }
-      });
+      <div class="plan-card fade-up">
+        <div class="plan-name">Trial</div>
+        <div class="plan-price">Gratis <span></span></div>
+        <div class="plan-desc">14 días · Para conocer la plataforma</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-lg fi-ok"></i> Hasta 2 barberos activos</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Hasta 30 clientes</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Control de caja completo</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Agenda de citas</li>
+          <li><i class="bi bi-x-lg fi-no"></i> Reportes avanzados</li>
+          <li><i class="bi bi-x-lg fi-no"></i> Exportar CSV y PDF</li>
+          <li><i class="bi bi-x-lg fi-no"></i> Liquidación de nómina</li>
+        </ul>
+        <a href="src/pages/register.html" class="btn-plan">Comenzar gratis</a>
+      </div>
 
-      // Scroll animations
-      const fadeEls = document.querySelectorAll(".fade-up");
-      const obs = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("visible");
-              obs.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
-      );
-      fadeEls.forEach((el) => obs.observe(el));
+      <div class="plan-card featured fade-up" style="transition-delay:0.1s">
+        <div class="plan-badge">Más popular</div>
+        <div class="plan-name" style="color:#fff">Pro</div>
+        <div class="plan-price">$79.000 <span>/mes</span></div>
+        <div class="plan-desc">Para barberías en operación activa</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-lg fi-ok"></i> Barberos ilimitados</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Clientes ilimitados</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Control de caja completo</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Agenda de citas</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Reportes con gráficas</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Exportar CSV y PDF</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Liquidación de nómina en PDF</li>
+        </ul>
+        <a href="src/pages/register.html" class="btn-plan gold">Empezar ahora</a>
+      </div>
 
-      // Navbar shadow on scroll
-      const nav = document.querySelector(".nav");
-      window.addEventListener(
-        "scroll",
-        () => {
-          nav.style.boxShadow =
-            window.scrollY > 10
-              ? "0 2px 24px rgba(0,0,0,0.1)"
-              : "0 1px 20px rgba(0,0,0,0.06)";
-        },
-        { passive: true },
-      );
-    </script>
-  </body>
+      <div class="plan-card fade-up" style="transition-delay:0.2s">
+        <div class="plan-name">Empresa</div>
+        <div class="plan-price">Personalizado <span></span></div>
+        <div class="plan-desc">Para cadenas con múltiples sucursales</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-lg fi-ok"></i> Todo lo del plan Pro</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Gestión multi-sucursal</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Reportes consolidados</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Integración con WhatsApp</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Gerente de cuenta dedicado</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Capacitación presencial</li>
+          <li><i class="bi bi-check-lg fi-ok"></i> Soporte prioritario 24/7</li>
+        </ul>
+        <a href="https://wa.me/573028016519?text=Hola%2C+me+interesa+el+plan+Empresa+de+FullFade" target="_blank" class="btn-plan">Contactar ventas</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <span class="contact-eyebrow fade-up">Soporte y Contacto</span>
+    <h2 class="contact-title fade-up">
+      ¿Tienes preguntas?<br/>Estamos disponibles.
+    </h2>
+    <p class="contact-sub fade-up">
+      Nuestro equipo responde en menos de 24 horas. Para consultas urgentes escríbenos directamente por WhatsApp y te atendemos al instante.
+    </p>
+    <div class="contact-actions fade-up">
+      <a href="https://wa.me/573028016519?text=Hola%2C+me+interesa+FullFade+para+mi+barber%C3%ADa" target="_blank" class="btn-wa">
+        <i class="bi bi-whatsapp"></i>
+        Escribir por WhatsApp
+      </a>
+      <a href="mailto:soporte@fullfade.co" class="btn-contact-ghost">
+        <i class="bi bi-envelope"></i>
+        soporte@fullfade.co
+      </a>
+    </div>
+    <div class="contact-info fade-up">
+      <div class="contact-info-item">
+        <i class="bi bi-whatsapp"></i>
+        <span>+57 302 801 6519</span>
+      </div>
+      <div class="contact-info-item">
+        <i class="bi bi-clock"></i>
+        <span>Lunes a sábado · 8:00 a.m. – 7:00 p.m.</span>
+      </div>
+      <div class="contact-info-item">
+        <i class="bi bi-geo-alt"></i>
+        <span>Colombia</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <a href="/" class="footer-logo">
+      <svg width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0"><rect width="36" height="36" rx="8" fill="#0a0a0a"/><text x="5" y="26" font-family="Georgia,serif" font-size="20" font-weight="700" fill="white">F</text><text x="19" y="26" font-family="Georgia,serif" font-size="15" font-style="italic" fill="white">f</text></svg>
+      <span class="logo-text">Full<span style="color:var(--gold)">Fade</span></span>
+    </a>
+    <p class="footer-copy">© 2026 FullFade. Software de gestión para barberías en Colombia.</p>
+    <div class="footer-links">
+      <a href="src/pages/login.html">Iniciar sesión</a>
+      <a href="src/pages/register.html">Registrarse</a>
+      <a href="https://wa.me/573028016519" target="_blank">Soporte</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Mobile nav
+  const burger = document.getElementById('navBurger');
+  const mobile = document.getElementById('navMobile');
+  burger.addEventListener('click', () => {
+    mobile.classList.toggle('open');
+  });
+
+  // Close mobile nav on link click
+  mobile.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => mobile.classList.remove('open'));
+  });
+
+  // Smooth close on outside click
+  document.addEventListener('click', e => {
+    if (!burger.contains(e.target) && !mobile.contains(e.target)) {
+      mobile.classList.remove('open');
+    }
+  });
+
+  // Scroll animations
+  const fadeEls = document.querySelectorAll('.fade-up');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  fadeEls.forEach(el => obs.observe(el));
+
+  // Navbar shadow on scroll
+  const nav = document.querySelector('.nav');
+  window.addEventListener('scroll', () => {
+    nav.style.boxShadow = window.scrollY > 10
+      ? '0 2px 24px rgba(0,0,0,0.1)'
+      : '0 1px 20px rgba(0,0,0,0.06)';
+  }, { passive: true });
+</script>
+</body>
 </html>
