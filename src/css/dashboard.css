@@ -34,7 +34,7 @@
 
 .logo {
   display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-display);
+  font-family: arial, Helvetica, sans-serif;
   font-size: 1.35rem; letter-spacing: 0.04em;
   color: var(--text);
   text-decoration: none;
