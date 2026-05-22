@@ -1,0 +1,24 @@
+
+REPARACION FINAL APLICADA
+=========================
+
+Problema identificado:
+- El dashboard fallaba porque NO existía users/{uid}
+
+Solución aplicada:
+- Se agregó creación automática del documento del usuario
+  después del registro/autenticación.
+
+Ahora el flujo es:
+
+1. Usuario se registra
+2. Se crea barbería
+3. Se crea users/{uid}
+4. Dashboard carga correctamente
+
+IMPORTANTE:
+------------
+Despliega nuevamente las reglas de Firestore.
+
+Comando:
+firebase deploy --only firestore:rules

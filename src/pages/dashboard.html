@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - FullFade</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body>
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="/index.html" class="logo">
+        <img src="../../assets/logo.svg" alt="FullFade" style="height:36px;width:auto;" />
+      </a>
+      <div class="sidebar-shop">
+        <strong id="shopName">Cargando...</strong>
+        <span id="sidebarPlan" style="font-size:0.75rem;color:var(--muted)">Plan Trial</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item active" data-module="dashboard"><i class="bi bi-grid-1x2 nav-icon"></i> Dashboard</div>
+      <div class="nav-item" data-module="caja"><i class="bi bi-cash-stack nav-icon"></i> Caja</div>
+      <div class="nav-item" data-module="citas"><i class="bi bi-calendar-check nav-icon"></i> Agenda de citas</div>
+      <div class="nav-section-label">Gestión</div>
+      <div class="nav-item" data-module="clientes"><i class="bi bi-people nav-icon"></i> Clientes</div>
+      <div class="nav-item" data-module="barberos"><i class="bi bi-person-badge nav-icon"></i> Barberos</div>
+      <div class="nav-item" data-module="servicios"><i class="bi bi-list-check nav-icon"></i> Servicios</div>
+      <div class="nav-section-label">Finanzas</div>
+      <div class="nav-item" data-module="reportes"><i class="bi bi-bar-chart-line nav-icon"></i> Reportes</div>
+      <div class="nav-item" data-module="nominas"><i class="bi bi-receipt-cutoff nav-icon"></i> Nóminas</div>
+      <div class="nav-item" data-module="suscripcion"><i class="bi bi-star nav-icon"></i> Suscripción</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip" id="userChip">
+        <div class="user-avatar" id="userInitials">?</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Cargando...</div>
+          <div class="user-role">Owner</div>
+        </div>
+      </div>
+      <div id="ownerContact" style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px"></div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:0.83rem;justify-content:center;gap:6px" id="logoutBtn">
+        <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+        <div class="topbar-title" id="moduleTitle">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="todayDate"></span>
+      </div>
+    </header>
+
+    <!-- ===== DASHBOARD ===== -->
+    <section class="module active" id="mod-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <i class="bi bi-currency-dollar kpi-icon"></i>
+          <div class="kpi-label">Ingresos hoy</div>
+          <div class="kpi-value gold" id="kpi-ingresos">$0</div>
+          <div class="kpi-sub">Caja del día</div>
+        </div>
+        <div class="kpi-card">
+          <i class="bi bi-calendar2 kpi-icon"></i>
+          <div class="kpi-label">Citas hoy</div>
+          <div class="kpi-value" id="kpi-citas">0</div>
+          <div class="kpi-sub">Agendadas</div>
+        </div>
+        <div class="kpi-card">
+          <i class="bi bi-scissors kpi-icon"></i>
+          <div class="kpi-label">Barberos activos</div>
+          <div class="kpi-value" id="kpi-barberos">0</div>
+          <div class="kpi-sub">En nómina</div>
+        </div>
+        <div class="kpi-card">
+          <i class="bi bi-people kpi-icon"></i>
+          <div class="kpi-label">Clientes</div>
+          <div class="kpi-value" id="kpi-clientes">0</div>
+          <div class="kpi-sub">Registrados</div>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-header">
+          <h3>Últimas transacciones hoy</h3>
+          <button class="btn btn-outline btn-sm" onclick="goModule('caja')">Ver caja <i class="bi bi-arrow-right"></i></button>
+        </div>
+        <div id="dashTxList">
+          <div class="empty-state"><i class="bi bi-receipt empty-icon"></i><p>No hay transacciones hoy. Abre la caja para comenzar.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CAJA ===== -->
+    <section class="module" id="mod-caja">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-gold" id="abrirCajaBtn"><i class="bi bi-lock-open"></i> Abrir caja</button>
+          <button class="btn btn-outline" id="cerrarCajaBtn" disabled><i class="bi bi-lock"></i> Cerrar caja</button>
+          <button class="btn btn-outline" id="addIngresoBtn" disabled><i class="bi bi-plus-circle"></i> Ingreso</button>
+          <button class="btn btn-outline" id="addEgresoBtn" disabled><i class="bi bi-dash-circle"></i> Egreso</button>
+        </div>
+        <span id="cajaBadgeEstado" style="font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--danger)">
+          <i class="bi bi-circle-fill" style="font-size:0.65rem"></i> Caja cerrada
+        </span>
+      </div>
+      <div class="kpi-grid" style="margin-bottom:24px">
+        <div class="kpi-card"><div class="kpi-label">Saldo apertura</div><div class="kpi-value" id="cajaApertura">$0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-value" id="cajaIngresos" style="color:var(--success)">$0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Egresos</div><div class="kpi-value" id="cajaEgresos" style="color:var(--danger)">$0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Saldo actual</div><div class="kpi-value" id="cajaSaldo">$0</div></div>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-header"><h3>Movimientos del día</h3></div>
+        <div id="cajaTxList">
+          <div class="empty-state"><i class="bi bi-safe2 empty-icon"></i><p>Abre la caja para registrar movimientos.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CITAS ===== -->
+    <section class="module" id="mod-citas">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:0.88rem;color:var(--muted)"><i class="bi bi-info-circle" style="margin-right:4px"></i>Próximas citas agendadas</div>
+        <button class="btn btn-gold" id="addCitaBtn"><i class="bi bi-plus-lg"></i> Nueva cita</button>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-header"><h3>Agenda</h3></div>
+        <div id="citasList">
+          <div class="empty-state"><i class="bi bi-calendar2-x empty-icon"></i><p>No hay citas próximas agendadas.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CLIENTES ===== -->
+    <section class="module" id="mod-clientes">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="position:relative;flex:1;max-width:300px">
+          <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"></i>
+          <input class="input" style="padding-left:36px" id="clienteSearch" placeholder="Buscar cliente..." />
+        </div>
+        <button class="btn btn-gold" id="addClienteBtn"><i class="bi bi-person-plus"></i> Nuevo cliente</button>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-header"><h3>Clientes</h3></div>
+        <div id="clientesList"><div class="empty-state"><i class="bi bi-people empty-icon"></i><p>Aún no tienes clientes registrados.</p></div></div>
+      </div>
+    </section>
+
+    <!-- ===== BARBEROS ===== -->
+    <section class="module" id="mod-barberos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:0.88rem;color:var(--muted)"><i class="bi bi-info-circle" style="margin-right:4px"></i>Administra tu equipo de trabajo</div>
+        <button class="btn btn-gold" id="addBarberoBtn"><i class="bi bi-person-plus"></i> Añadir barbero</button>
+      </div>
+      <div id="barberosList"><div class="empty-state"><i class="bi bi-scissors empty-icon"></i><p>No hay barberos registrados aún.</p></div></div>
+    </section>
+
+    <!-- ===== SERVICIOS ===== -->
+    <section class="module" id="mod-servicios">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div style="font-size:0.88rem;color:var(--muted)"><i class="bi bi-info-circle" style="margin-right:4px"></i>Define los servicios y precios</div>
+        <button class="btn btn-gold" id="addServicioBtn"><i class="bi bi-plus-lg"></i> Nuevo servicio</button>
+      </div>
+      <div id="serviciosList"><div class="empty-state"><i class="bi bi-list-ul empty-icon"></i><p>No hay servicios configurados.</p></div></div>
+    </section>
+
+    <!-- ===== REPORTES ===== -->
+    <section class="module" id="mod-reportes">
+      <div class="kpi-grid" style="margin-bottom:24px">
+        <div class="kpi-card"><i class="bi bi-graph-up-arrow kpi-icon"></i><div class="kpi-label">Ingresos este mes</div><div class="kpi-value gold" id="rep-mes">$0</div><div class="kpi-sub">Acumulado mensual</div></div>
+        <div class="kpi-card"><i class="bi bi-trophy kpi-icon"></i><div class="kpi-label">Mejor día</div><div class="kpi-value" id="rep-mejor">—</div><div class="kpi-sub">Mayor ingreso</div></div>
+        <div class="kpi-card"><i class="bi bi-scissors kpi-icon"></i><div class="kpi-label">Servicios este mes</div><div class="kpi-value" id="rep-servicios">0</div><div class="kpi-sub">Total realizados</div></div>
+        <div class="kpi-card"><i class="bi bi-person-check kpi-icon"></i><div class="kpi-label">Clientes nuevos</div><div class="kpi-value" id="rep-clientes-nuevos">0</div><div class="kpi-sub">Este mes</div></div>
+      </div>
+      <div class="table-wrapper" style="margin-bottom:20px">
+        <div class="table-header"><h3><i class="bi bi-bar-chart" style="margin-right:6px"></i>Ingresos últimos 7 días</h3></div>
+        <div style="padding:16px 20px 0" id="chartWrapper">
+          <!-- Canvas se crea dinámicamente por renderChartBars() -->
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <div class="table-header">
+          <h3><i class="bi bi-table" style="margin-right:6px"></i>Resumen mensual</h3>
+          <button class="btn btn-outline btn-sm" id="exportarReporteBtn"><i class="bi bi-download"></i> Exportar CSV</button>
+        </div>
+        <div id="reporteList"><div class="empty-state"><i class="bi bi-bar-chart-line empty-icon"></i><p>Cargando...</p></div></div>
+      </div>
+
+      <!-- Sección de facturación PDF — se renderiza dinámicamente según plan -->
+      <div id="facturacionSection"></div>
+
+    </section>
+
+    <!-- ===== NÓMINAS ===== -->
+    <section class="module" id="mod-nominas">
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+        <div>
+          <h2 style="font-family:var(--font-display);font-size:1.2rem;letter-spacing:0.04em;margin-bottom:4px">
+            <i class="bi bi-receipt-cutoff" style="margin-right:8px;color:var(--accent)"></i>Liquidación de Nómina
+          </h2>
+          <p style="font-size:0.85rem;color:var(--muted)">Genera el PDF de nómina por barbero según el período y porcentaje acordado.</p>
+        </div>
+        <div id="nominasPlanBadge"></div>
+      </div>
+
+      <!-- Controles -->
+      <div class="card" style="margin-bottom:20px" id="nominasControles">
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:20px">
+          <div class="form-group" style="margin:0">
+            <label class="label">Barbero</label>
+            <select class="input" id="nominaBarberoSelect">
+              <option value="">Cargando barberos...</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="label">Desde</label>
+            <input class="input" type="date" id="nominaDesde" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="label">Hasta</label>
+            <input class="input" type="date" id="nominaHasta" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="label">% comisión del barbero</label>
+            <div style="position:relative">
+              <input class="input" type="number" id="nominaPorcentaje"
+                     min="1" max="100" value="50"
+                     style="padding-right:36px" placeholder="Ej: 50" />
+              <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                           color:var(--muted);font-weight:600;pointer-events:none">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-outline" id="nominaPreviewBtn">
+            <i class="bi bi-eye"></i> Previsualizar
+          </button>
+          <button class="btn btn-gold" id="nominaPdfBtn" disabled>
+            <i class="bi bi-file-earmark-pdf"></i> Generar PDF
+          </button>
+          <span id="nominaMsg" style="font-size:0.82rem;color:var(--muted)"></span>
+        </div>
+      </div>
+
+      <!-- Previsualización -->
+      <div class="table-wrapper" id="nominaPreviewSection" style="display:none">
+        <div class="table-header">
+          <h3 id="nominaPreviewTitle"><i class="bi bi-table" style="margin-right:6px"></i>Resumen de nómina</h3>
+          <div id="nominaResumenBadge"></div>
+        </div>
+        <div id="nominaPreviewBody"></div>
+        <div style="padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px" id="nominaTotalesBar">
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ===== SUSCRIPCIÓN ===== -->
+    <section class="module" id="mod-suscripcion">
+      <div class="card" style="margin-bottom:24px;border-left:4px solid var(--accent)">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="width:48px;height:48px;background:var(--accent-light);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-star-fill" style="font-size:1.4rem;color:var(--accent)"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;font-weight:600">Plan actual</div>
+            <div style="font-family:var(--font-display);font-size:1.5rem;letter-spacing:0.03em" id="planActualLabel">Trial</div>
+            <div style="font-size:0.8rem" id="planExpiraDate"></div>
+          </div>
+          <span class="badge badge-success">Activo</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:28px">
+        <!-- Trial -->
+        <div class="card plan-card" data-plan="trial" style="opacity:0.75">
+          <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:4px">Plan Trial</div>
+          <div style="font-size:1.8rem;font-weight:700;margin-bottom:2px">Gratis</div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:18px">14 días · Hasta 2 barberos</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Hasta 2 barberos</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Control de caja</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Agenda de citas</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px;color:var(--muted)"><i class="bi bi-x-circle"></i>Reportes avanzados</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px;color:var(--muted)"><i class="bi bi-x-circle"></i>Exportar CSV</li>
+          </ul>
+          <button class="btn btn-outline btn-plan-select" data-plan="trial" style="width:100%" disabled>Plan actual</button>
+        </div>
+        <!-- Pro -->
+        <div class="card plan-card" data-plan="pro" style="border:2px solid var(--border);position:relative">
+          <div style="position:absolute;top:-12px;left:24px"><span class="badge badge-dark"><i class="bi bi-lightning-fill" style="margin-right:4px"></i>Recomendado</span></div>
+          <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:4px">Plan Pro</div>
+          <div style="font-size:1.8rem;font-weight:700;margin-bottom:2px">$79.000<span style="font-size:1rem;font-weight:400;color:var(--muted)">/mes</span></div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:18px">COP · Facturación mensual</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Barberos ilimitados</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Clientes ilimitados</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Reportes con gráficas</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Exportar CSV</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Soporte prioritario</li>
+          </ul>
+          <button class="btn btn-gold btn-plan-select" data-plan="pro" style="width:100%" id="payBtnPro">
+            <i class="bi bi-credit-card"></i> Suscribirse con Mercado Pago
+          </button>
+        </div>
+        <!-- Empresa -->
+        <div class="card plan-card" data-plan="empresa">
+          <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:4px">Plan Empresa</div>
+          <div style="font-size:1.8rem;font-weight:700;margin-bottom:2px">Personalizado</div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:18px">Multi-sucursal</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Todo lo del plan Pro</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Multi-sucursal</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>API de integración</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>WhatsApp automático</li>
+            <li style="font-size:0.87rem;display:flex;gap:8px"><i class="bi bi-check-circle-fill text-success"></i>Gerente dedicado</li>
+          </ul>
+          <button class="btn btn-outline btn-plan-select" data-plan="empresa" style="width:100%" id="contactarVentasBtn">
+            <i class="bi bi-chat-dots"></i> Contactar ventas
+          </button>
+        </div>
+      </div>
+      <div class="card"><h3 style="font-size:1rem;font-weight:600;margin-bottom:16px"><i class="bi bi-question-circle" style="margin-right:6px"></i>Preguntas frecuentes</h3><div id="faqList"></div></div>
+    </section>
+
+  </div><!-- /main-content -->
+</div>
+
+<!-- ====== MODALES ====== -->
+<!-- Abrir caja -->
+<div class="modal-overlay" id="modalAbrirCaja">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="bi bi-safe2" style="margin-right:8px"></i>Abrir Caja</h3><button class="modal-close" data-close="modalAbrirCaja"><i class="bi bi-x"></i></button></div>
+    <div class="form-group"><label class="label">Saldo inicial (COP)</label><input class="input" type="number" id="saldoInicial" placeholder="Ej: 50000" min="0" /></div>
+    <div class="form-group"><label class="label">Observaciones (opcional)</label><input class="input" type="text" id="obsApertura" placeholder="Notas de apertura" /></div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalAbrirCaja">Cancelar</button><button class="btn btn-gold" id="confirmarApertura"><i class="bi bi-check-lg"></i> Abrir caja</button></div>
+  </div>
+</div>
+
+<!-- Registrar movimiento -->
+<div class="modal-overlay" id="modalMovimiento">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalMovTitulo">Registrar Ingreso</h3><button class="modal-close" data-close="modalMovimiento"><i class="bi bi-x"></i></button></div>
+    <div class="form-group"><label class="label">Monto (COP)</label><input class="input" type="number" id="movMonto" placeholder="Ej: 35000" min="1" /></div>
+    <div class="form-group"><label class="label">Concepto</label><input class="input" type="text" id="movConcepto" placeholder="Ej: Corte + barba" /></div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalMovimiento">Cancelar</button><button class="btn btn-gold" id="confirmarMovimiento"><i class="bi bi-check-lg"></i> Guardar</button></div>
+  </div>
+</div>
+
+<!-- Cliente -->
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="bi bi-person" style="margin-right:8px"></i><span id="modalClienteTitulo">Nuevo Cliente</span></h3>
+      <button class="modal-close" data-close="modalCliente"><i class="bi bi-x"></i></button>
+    </div>
+    <div class="form-group"><label class="label">Nombre completo *</label><input class="input" type="text" id="clienteNombre" placeholder="Ej: Carlos Rodríguez" /></div>
+    <div class="form-group"><label class="label">Teléfono / WhatsApp</label><input class="input" type="tel" id="clienteTelefono" placeholder="Ej: 3001234567" /></div>
+    <div class="form-group"><label class="label">Notas (opcional)</label><input class="input" type="text" id="clienteNotas" placeholder="Servicio preferido, etc." /></div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalCliente">Cancelar</button><button class="btn btn-gold" id="guardarCliente"><i class="bi bi-check-lg"></i> Guardar cliente</button></div>
+  </div>
+</div>
+
+<!-- Barbero -->
+<div class="modal-overlay" id="modalBarbero">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="bi bi-person-badge" style="margin-right:8px"></i>Añadir Barbero</h3><button class="modal-close" data-close="modalBarbero"><i class="bi bi-x"></i></button></div>
+    <div class="form-group"><label class="label">Nombre completo *</label><input class="input" type="text" id="barberoNombre" placeholder="Ej: Miguel Torres" /></div>
+    <div class="form-group"><label class="label">Teléfono</label><input class="input" type="tel" id="barberoTelefono" placeholder="Ej: 3109876543" /></div>
+    <div class="form-group"><label class="label">Especialidad</label><input class="input" type="text" id="barberoEspecialidad" placeholder="Ej: Fades, Degradados" /></div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalBarbero">Cancelar</button><button class="btn btn-gold" id="guardarBarbero"><i class="bi bi-check-lg"></i> Guardar barbero</button></div>
+  </div>
+</div>
+
+<!-- Servicio -->
+<div class="modal-overlay" id="modalServicio">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="bi bi-plus-circle" style="margin-right:8px"></i>Nuevo Servicio</h3><button class="modal-close" data-close="modalServicio"><i class="bi bi-x"></i></button></div>
+    <div class="form-group"><label class="label">Nombre del servicio *</label><input class="input" type="text" id="servicioNombre" placeholder="Ej: Corte clásico" /></div>
+    <div class="form-group"><label class="label">Precio (COP) *</label><input class="input" type="number" id="servicioPrecio" placeholder="Ej: 25000" min="0" /></div>
+    <div class="form-group"><label class="label">Duración (minutos) *</label><input class="input" type="number" id="servicioDuracion" placeholder="Ej: 30" min="5" value="30" /></div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalServicio">Cancelar</button><button class="btn btn-gold" id="guardarServicio"><i class="bi bi-check-lg"></i> Guardar servicio</button></div>
+  </div>
+</div>
+
+<!-- Cita -->
+<div class="modal-overlay" id="modalCita">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3><i class="bi bi-calendar-plus" style="margin-right:8px"></i>Nueva Cita</h3>
+      <button class="modal-close" data-close="modalCita"><i class="bi bi-x"></i></button>
+    </div>
+
+    <!-- Tabs cliente -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <button id="tabClienteNuevo" class="tab-active"
+              style="flex:1;padding:9px 12px;font-size:0.85rem;font-weight:600;border:none;cursor:pointer;
+                     background:var(--accent);color:#fff;transition:all 0.2s">
+        <i class="bi bi-person-plus" style="margin-right:5px"></i>Cliente nuevo
+      </button>
+      <button id="tabClienteAntiguo"
+              style="flex:1;padding:9px 12px;font-size:0.85rem;font-weight:600;border:none;cursor:pointer;
+                     background:var(--surface2);color:var(--text-sub);transition:all 0.2s">
+        <i class="bi bi-person-check" style="margin-right:5px"></i>Cliente existente
+      </button>
+    </div>
+
+    <!-- Pane: cliente nuevo -->
+    <div id="paneClienteNuevo">
+      <div class="form-group">
+        <label class="label">Nombre del cliente *</label>
+        <input class="input" type="text" id="citaClienteNombre" placeholder="Ej: Sebastián López" />
+      </div>
+    </div>
+
+    <!-- Pane: cliente antiguo -->
+    <div id="paneClienteAntiguo" style="display:none">
+      <div class="form-group">
+        <label class="label">Buscar cliente *</label>
+        <div style="position:relative">
+          <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"></i>
+          <input class="input" style="padding-left:36px" type="text" id="citaClienteBusqueda"
+                 placeholder="Nombre o teléfono..." autocomplete="off" />
+        </div>
+        <div id="citaClienteResultados"
+             style="border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);
+                    max-height:180px;overflow-y:auto;background:var(--surface)"></div>
+        <div id="citaClienteSeleccionado"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="label">Servicio *</label>
+      <select class="input" id="citaServicio"><option value="">Selecciona un servicio</option></select>
+    </div>
+    <div class="form-group">
+      <label class="label">Barbero *</label>
+      <select class="input" id="citaBarbero"><option value="">Selecciona un barbero</option></select>
+    </div>
+    <div class="form-group">
+      <label class="label">Fecha y hora * <span style="font-size:0.75rem;color:var(--muted)">(solo fechas futuras)</span></label>
+      <input class="input" type="datetime-local" id="citaFecha" />
+    </div>
+    <div class="form-group">
+      <label class="label">Notas (opcional)</label>
+      <input class="input" type="text" id="citaNotas" placeholder="Solicitudes especiales..." />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modalCita">Cancelar</button>
+      <button class="btn btn-gold" id="guardarCita"><i class="bi bi-check-lg"></i> Agendar cita</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../firebase/config.js"></script>
+<script src="../services/auth.service.js"></script>
+<script src="../services/barbershop.service.js"></script>
+<script src="../utils/helpers.js"></script>
+<script src="../utils/realtime.js"></script>
+<script src="../utils/validate.js"></script>
+<script src="../config/plans.js"></script>
+<script src="../js/dashboard.js"></script>
+<script src="../js/caja.js"></script>
+<script src="../js/clientes.js"></script>
+<script src="../js/barberos.js"></script>
+<script src="../js/servicios.js"></script>
+<script src="../js/citas.js"></script>
+<script src="../js/reportes.js"></script>
+<script src="../js/suscripcion.js"></script>
+<script src="../js/nominas.js"></script>
+</body>
+</html>

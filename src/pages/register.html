@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrar barbería - FullFade</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body>
+
+<div class="auth-layout">
+  <div class="auth-panel">
+    <a href="/index.html" class="logo">
+      <img src="../../assets/logo.svg" alt="FullFade" style="height:38px;width:auto;" />
+    </a>
+    <div class="auth-panel-content">
+      <blockquote class="auth-quote">"Empieza hoy.<br/>Tu barbería lo merece."</blockquote>
+      <ul class="auth-perks">
+        <li><i class="bi bi-check-circle-fill"></i> Control de caja diario</li>
+        <li><i class="bi bi-check-circle-fill"></i> Agenda de citas</li>
+        <li><i class="bi bi-check-circle-fill"></i> Gestión de barberos</li>
+        <li><i class="bi bi-check-circle-fill"></i> Reportes financieros</li>
+        <li><i class="bi bi-check-circle-fill"></i> Plan trial gratuito</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth-form-wrapper">
+    <div class="auth-form-box">
+      <div class="auth-header">
+        <h1>Registra tu barbería</h1>
+        <p>Configúrate en menos de 5 minutos</p>
+      </div>
+
+      <div id="errorMsg" class="error-msg" style="display:none"></div>
+
+      <div class="steps-indicator">
+        <div class="step active" data-step="1">1</div>
+        <div class="step-line"></div>
+        <div class="step" data-step="2">2</div>
+      </div>
+
+      <!-- Paso 1 -->
+      <div id="step1">
+        <div class="form-group">
+          <label class="label" for="shopName">Nombre de tu barbería</label>
+          <input class="input" type="text" id="shopName" placeholder="Ej: Barbería El Clásico" />
+        </div>
+        <div class="form-group">
+          <label class="label" for="shopPhone">Teléfono / WhatsApp</label>
+          <input class="input" type="tel" id="shopPhone" placeholder="Ej: 3001234567" />
+        </div>
+        <div class="form-group">
+          <label class="label" for="shopAddress">Dirección (opcional)</label>
+          <input class="input" type="text" id="shopAddress" placeholder="Ej: Cra 10 #45-23, Medellín" />
+        </div>
+        <button type="button" class="btn btn-gold btn-block" id="step1Btn">
+          Continuar <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Paso 2 -->
+      <div id="step2" style="display:none">
+        <div class="form-group">
+          <label class="label" for="displayName">Tu nombre completo</label>
+          <input class="input" type="text" id="displayName" placeholder="Ej: Andrés Torres" />
+        </div>
+        <div class="form-group">
+          <label class="label" for="email">Correo electrónico</label>
+          <input class="input" type="email" id="email" placeholder="correo@barberia.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="label" for="password">Contraseña</label>
+          <div class="input-group">
+            <input class="input" type="password" id="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+            <button type="button" class="input-toggle" id="togglePwd">
+              <i class="bi bi-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button type="button" id="backBtn" class="btn btn-ghost">
+            <i class="bi bi-arrow-left"></i> Atrás
+          </button>
+          <button type="button" class="btn btn-gold" style="flex:1" id="submitBtn">
+            Crear cuenta
+          </button>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        ¿Ya tienes cuenta? <a href="login.html" class="link-gold">Iniciar sesión</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../firebase/config.js"></script>
+<script src="../services/auth.service.js"></script>
+<script src="../services/barbershop.service.js"></script>
+<script src="../utils/helpers.js"></script>
+<script>
+  redirectIfAuth();
+
+  let shopData = {};
+  const errMsg = document.getElementById('errorMsg');
+  const steps  = document.querySelectorAll('.step');
+
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const p   = document.getElementById('password');
+    const ico = document.getElementById('eyeIcon');
+    p.type    = p.type === 'password' ? 'text' : 'password';
+    ico.className = p.type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+
+  document.getElementById('step1Btn').addEventListener('click', () => {
+    const name = document.getElementById('shopName').value.trim();
+    if (!name) { showError('El nombre de la barbería es obligatorio.'); return; }
+    hideError();
+    shopData.name    = name;
+    shopData.phone   = document.getElementById('shopPhone').value.trim();
+    shopData.address = document.getElementById('shopAddress').value.trim();
+    goStep(2);
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => goStep(1));
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    hideError();
+    const displayName = document.getElementById('displayName').value.trim();
+    const email       = document.getElementById('email').value.trim();
+    const password    = document.getElementById('password').value;
+
+    if (!displayName)        { showError('Ingresa tu nombre completo.'); return; }
+    if (!email)              { showError('Ingresa tu correo electrónico.'); return; }
+    if (password.length < 6) { showError('La contraseña debe tener al menos 6 caracteres.'); return; }
+
+    setLoading(true);
+    let authUser = null;
+
+    try {
+      // 1) Crear usuario Auth
+      authUser = await AuthService.register(email, password, displayName);
+
+      // 2) Crear documentos Firestore (con reintentos)
+      await crearDatosConReintentos(authUser, { ...shopData, email, displayName });
+
+      // 3) Éxito — ir al dashboard
+      window.location.href = 'dashboard.html';
+
+    } catch (err) {
+      console.error('Error en registro:', err);
+
+      // Si Auth se creó pero Firestore falló completamente,
+      // eliminar el usuario Auth para no dejar estado inconsistente
+      if (authUser && err._esErrorFirestore) {
+        try { await authUser.delete(); } catch(e) { /* ignorar */ }
+      }
+
+      showError(traducirError(err.code || ''));
+      setLoading(false);
+    }
+  });
+
+  async function crearDatosConReintentos(user, data, maxIntentos = 3) {
+    let ultimoError;
+    for (let i = 1; i <= maxIntentos; i++) {
+      try {
+        await BarbershopService.create(user.uid, data);
+        return; // éxito
+      } catch (err) {
+        ultimoError = err;
+        console.warn('Intento ' + i + ' Firestore falló:', err.message);
+        if (i < maxIntentos) {
+          await new Promise(r => setTimeout(r, 600 * i)); // backoff
+        }
+      }
+    }
+    // Todos los intentos fallaron
+    const e = new Error(ultimoError.message);
+    e._esErrorFirestore = true;
+    throw e;
+  }
+
+  function goStep(n) {
+    document.getElementById('step1').style.display = n === 1 ? 'block' : 'none';
+    document.getElementById('step2').style.display = n === 2 ? 'block' : 'none';
+    steps.forEach(s => s.classList.toggle('active', parseInt(s.dataset.step) <= n));
+  }
+
+  function setLoading(val) {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = val;
+    btn.innerHTML = val
+      ? '<span class="loader" style="width:16px;height:16px;border-width:2px;vertical-align:middle"></span> Creando...'
+      : 'Crear cuenta';
+  }
+
+  function showError(msg) { errMsg.innerHTML = msg; errMsg.style.display = 'block'; }
+  function hideError()    { errMsg.style.display = 'none'; }
+
+  function traducirError(code) {
+    const map = {
+      'auth/email-already-in-use':    'Ya existe una cuenta con ese correo. <a href="login.html" style="color:var(--accent);font-weight:600">Inicia sesión aquí</a>.',
+      'auth/invalid-email':           'El correo electrónico no tiene un formato válido.',
+      'auth/weak-password':           'La contraseña es muy débil. Usa al menos 6 caracteres.',
+      'auth/network-request-failed':  'Sin conexión a internet. Verifica tu red e intenta de nuevo.',
+      'auth/too-many-requests':       'Demasiados intentos. Espera unos minutos e intenta de nuevo.',
+      'auth/operation-not-allowed':   'El registro con email y contraseña no está habilitado en este proyecto.',
+    };
+    return map[code] || 'Ocurrió un error inesperado. Intenta de nuevo.';
+  }
+</script>
+</body>
+</html>

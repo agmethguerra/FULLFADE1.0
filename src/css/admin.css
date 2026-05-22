@@ -1,0 +1,4 @@
+/* FullFade — Estilos panel admin */
+.badge-dark { background: var(--accent); color: #fff; }
+.badge-muted { background: var(--surface2); color: var(--muted); }
+.plan-card-active { border: 2px solid var(--accent) !important; }

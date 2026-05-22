@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SuperAdmin - FullFade</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body>
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="/index.html" class="logo">
+        <img src="../../assets/logo.svg" alt="FullFade" style="height:36px;width:auto;" />
+      </a>
+      <div class="sidebar-shop">
+        <strong>Panel SuperAdmin</strong>
+        <span style="font-size:0.75rem;color:var(--danger);font-weight:600">ACCESO RESTRINGIDO</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Administración</div>
+      <div class="nav-item active" data-module="negocios"><i class="bi bi-shop nav-icon"></i> Negocios</div>
+      <div class="nav-item" data-module="usuarios"><i class="bi bi-people nav-icon"></i> Usuarios</div>
+      <div class="nav-item" data-module="planes"><i class="bi bi-star nav-icon"></i> Planes</div>
+      <div class="nav-item" data-module="demo"><i class="bi bi-play-circle nav-icon"></i> Cuenta Demo</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="adminInitials">SA</div>
+        <div class="user-info">
+          <div class="user-name" id="adminName">SuperAdmin</div>
+          <div class="user-role" style="color:var(--danger)">superadmin</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:0.83rem;justify-content:center;gap:6px" id="adminLogoutBtn">
+        <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+        <div class="topbar-title" id="adminModuleTitle">Negocios Registrados</div>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" style="background:var(--danger);color:#fff;font-size:0.75rem">
+          <i class="bi bi-shield-fill" style="margin-right:4px"></i>SuperAdmin
+        </span>
+      </div>
+    </header>
+
+    <!-- MÓDULO: NEGOCIOS -->
+    <section class="module active" id="mod-negocios">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="position:relative">
+            <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"></i>
+            <input class="input" style="padding-left:36px;width:240px" id="adminSearchNegocio" placeholder="Buscar negocio..." />
+          </div>
+          <select class="input" style="width:160px" id="adminFiltroPlan">
+            <option value="">Todos los planes</option>
+            <option value="trial">Trial</option>
+            <option value="pro">Pro</option>
+            <option value="empresa">Empresa</option>
+            <option value="demo">Demo</option>
+          </select>
+        </div>
+        <div id="adminStats" style="font-size:0.85rem;color:var(--muted)"></div>
+      </div>
+      <div id="adminNegociosList">
+        <div class="empty-state"><i class="bi bi-hourglass-split empty-icon"></i><p>Cargando negocios...</p></div>
+      </div>
+    </section>
+
+    <!-- MÓDULO: USUARIOS -->
+    <section class="module" id="mod-usuarios">
+      <div id="adminUsuariosList">
+        <div class="empty-state"><i class="bi bi-hourglass-split empty-icon"></i><p>Cargando usuarios...</p></div>
+      </div>
+    </section>
+
+    <!-- MÓDULO: PLANES -->
+    <section class="module" id="mod-planes">
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px"><i class="bi bi-pencil-square" style="margin-right:8px"></i>Cambiar plan de un negocio</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap">
+          <div class="form-group" style="margin:0">
+            <label class="label">ID del Negocio (barbershopId)</label>
+            <input class="input" id="planBarbershopId" placeholder="pQZ75nMYaYPoT4J9LUHQ" />
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="label">Nuevo Plan</label>
+            <select class="input" id="planNuevo">
+              <option value="trial">Trial (14 días)</option>
+              <option value="pro">Pro (30 días)</option>
+              <option value="empresa">Empresa (30 días)</option>
+              <option value="demo">Demo (sin límite)</option>
+            </select>
+          </div>
+          <button class="btn btn-gold" id="cambiarPlanBtn">
+            <i class="bi bi-check-lg"></i> Aplicar
+          </button>
+        </div>
+        <div id="planMsgResult" style="margin-top:12px;font-size:0.85rem"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px"><i class="bi bi-bar-chart-fill" style="margin-right:8px"></i>Distribución de planes</h3>
+        <div id="planDistribucion"><div class="empty-state"><i class="bi bi-hourglass-split empty-icon"></i><p>Cargando...</p></div></div>
+      </div>
+    </section>
+
+    <!-- MÓDULO: CUENTA DEMO -->
+    <section class="module" id="mod-demo">
+      <div class="card" style="border-left:4px solid var(--accent);margin-bottom:20px">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px"><i class="bi bi-play-circle" style="margin-right:8px"></i>Cuenta de Demostración</h3>
+        <p style="font-size:0.87rem;color:var(--text-sub);margin-bottom:16px">
+          Esta cuenta tiene datos pre-cargados para mostrar todas las funcionalidades del sistema. Comparte estas credenciales con potenciales clientes.
+        </p>
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:16px 20px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <i class="bi bi-envelope" style="color:var(--muted);width:18px"></i>
+            <span style="font-family:monospace;font-size:0.95rem">demo@fullfade.com</span>
+            <button class="btn btn-ghost btn-sm" onclick="copyText('demo@fullfade.com')"><i class="bi bi-clipboard"></i></button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <i class="bi bi-key" style="color:var(--muted);width:18px"></i>
+            <span style="font-family:monospace;font-size:0.95rem">demo1234</span>
+            <button class="btn btn-ghost btn-sm" onclick="copyText('demo1234')"><i class="bi bi-clipboard"></i></button>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" id="seedDemoBtn">
+            <i class="bi bi-database-fill-add"></i> Rellenar datos demo
+          </button>
+          <button class="btn btn-ghost" style="color:var(--danger)" id="clearDemoBtn">
+            <i class="bi bi-trash"></i> Limpiar datos demo
+          </button>
+        </div>
+        <div id="demoMsg" style="margin-top:12px;font-size:0.85rem"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Modal: Detalle / editar negocio -->
+<div class="modal-overlay" id="modalNegocio">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3><i class="bi bi-shop" style="margin-right:8px"></i><span id="modalNegocioTitle">Negocio</span></h3>
+      <button class="modal-close" data-close="modalNegocio"><i class="bi bi-x"></i></button>
+    </div>
+    <div id="modalNegocioBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modalNegocio">Cerrar</button>
+      <button class="btn btn-gold" id="guardarNegocioBtn"><i class="bi bi-check-lg"></i> Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../firebase/config.js"></script>
+<script src="../services/auth.service.js"></script>
+<script src="../services/barbershop.service.js"></script>
+<script src="../utils/helpers.js"></script>
+<script src="../utils/realtime.js"></script>
+<script src="../utils/validate.js"></script>
+<script src="../config/plans.js"></script>
+<script src="../js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+
+CAMBIOS REALIZADOS AL PROYECTO FULLFADE
+======================================
+
+1. Se corrigieron las reglas de Firestore:
+   - Eliminado bloqueo circular en creación de barberías
+   - Agregada validación segura para users/{uid}
+   - Separadas reglas create/update/delete
+   - Corregida validación de customers
+   - Corregida validación de cash_registers
+
+2. Se corrigió compatibilidad Firebase SDK v9:
+   - updateProfile(user, data)
+
+3. Se mejoró seguridad multi-tenant.
+
+IMPORTANTE:
+------------
+Después de desplegar las reglas:
+- Verifica que cada usuario tenga documento en /users/{uid}
+- Incluye:
+    role
+    barbershopId
+
+Ejemplo:
+
+users/UID
+{
+  role: "owner",
+  barbershopId: "abc123"
+}

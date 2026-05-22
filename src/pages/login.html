@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión - FullFade</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body>
+
+<div class="auth-layout">
+
+  <!-- Panel izquierdo decorativo -->
+  <div class="auth-panel">
+    <a href="/index.html" class="logo">
+      <img src="../../assets/logo.svg" alt="FullFade" style="height:38px;width:auto;" />
+    </a>
+    <div class="auth-panel-content">
+      <blockquote class="auth-quote">
+        "El orden de tu barbería<br/>empieza en tu gestión."
+      </blockquote>
+      <div class="auth-panel-deco"></div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="auth-form-wrapper">
+    <div class="auth-form-box">
+      <div class="auth-header">
+        <h1>Bienvenido de nuevo</h1>
+        <p>Ingresa a tu cuenta de FullFade</p>
+      </div>
+
+      <div id="errorMsg" class="error-msg" style="display:none"></div>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="form-group">
+          <label class="label" for="email">Correo electrónico</label>
+          <input class="input" type="email" id="email" name="email"
+                 placeholder="correo@barberia.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="label" for="password">Contraseña</label>
+          <div class="input-group">
+            <input class="input" type="password" id="password" name="password"
+                   placeholder="Tu contraseña" required autocomplete="current-password" />
+            <button type="button" class="input-toggle" id="togglePwd" aria-label="Mostrar contraseña">
+              👁
+            </button>
+          </div>
+        </div>
+        <div class="form-row">
+          <a href="#" id="forgotLink" class="link-sm">¿Olvidaste tu contraseña?</a>
+        </div>
+        <button type="submit" class="btn btn-gold btn-block" id="submitBtn">
+          Iniciar sesión
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        ¿No tienes cuenta? <a href="register.html" class="link-gold">Registra tu barbería</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Config y servicios -->
+<script src="../firebase/config.js"></script>
+<script src="../services/auth.service.js"></script>
+<script src="../utils/helpers.js"></script>
+<script>
+  // Si ya está autenticado, redirigir
+  redirectIfAuth();
+
+  const form    = document.getElementById('loginForm');
+  const errMsg  = document.getElementById('errorMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  const togglePwd = document.getElementById('togglePwd');
+  const pwdInput  = document.getElementById('password');
+
+  // Toggle password visibility
+  togglePwd.addEventListener('click', () => {
+    const isText = pwdInput.type === 'text';
+    pwdInput.type = isText ? 'password' : 'text';
+    togglePwd.textContent = isText ? '👁' : '🙈';
+  });
+
+  // Forgot password
+  document.getElementById('forgotLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!email) { showError('Ingresa tu correo primero.'); return; }
+    try {
+      await AuthService.resetPassword(email);
+      Toast.success('Correo de recuperación enviado ✓');
+    } catch (err) {
+      showError(getAuthError(err.code));
+    }
+  });
+
+  // Login
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    setLoading(true);
+    try {
+      await AuthService.login(email, password);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showError(getAuthError(err.code));
+      setLoading(false);
+    }
+  });
+
+  function setLoading(val) {
+    submitBtn.disabled = val;
+    submitBtn.innerHTML = val
+      ? '<span class="loader"></span> Ingresando...'
+      : 'Iniciar sesión';
+  }
+
+  function showError(msg) {
+    errMsg.textContent = msg;
+    errMsg.style.display = 'block';
+  }
+  function hideError() { errMsg.style.display = 'none'; }
+
+  function getAuthError(code) {
+    const map = {
+      'auth/user-not-found':    'No existe una cuenta con ese correo.',
+      'auth/wrong-password':    'Contraseña incorrecta.',
+      'auth/invalid-email':     'Correo inválido.',
+      'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',
+      'auth/invalid-credential':'Correo o contraseña incorrectos.'
+    };
+    return map[code] || 'Ocurrió un error. Intenta de nuevo.';
+  }
+</script>
+</body>
+</html>
