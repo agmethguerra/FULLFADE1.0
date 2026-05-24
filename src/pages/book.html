@@ -11,13 +11,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --black: #0a0a0a; --white: #fff;
-      --gold: #C9A84C; --gold-lt: #e8c96a;
+      --gold: #ffffff; --gold-lt: #000000;
       --gray1: #f7f6f4; --gray2: #eeecea;
       --gray3: #c8c4bc; --gray4: #7a7570;
       --gray5: #3a3733;
       --success: #2f9e44; --danger: #e03131;
-      --radius: 10px; --serif: 'Playfair Display',Georgia,serif;
-      --sans: 'DM Sans',system-ui,sans-serif;
+      --radius: 10px;
+      --sans:system-ui;
     }
     body { font-family: var(--sans); background: var(--gray1); color: var(--black); min-height: 100vh; }
 
@@ -28,12 +28,12 @@
     }
     .book-logo {
       display: flex; align-items: center; justify-content: center;
-      width: 40px; height: 40px; background: var(--gold);
+      width: 40px; height: 40px; background-color: var(--white);
       border-radius: 8px; flex-shrink: 0;
     }
     .book-logo svg { width: 40px; height: 40px; }
     .book-shop-name {
-      font-family: var(--serif); font-size: 1.3rem; font-weight: 900;
+      font-family: arial; font-size: 1.3rem; font-weight: 800;
       color: var(--white); letter-spacing: 0.02em;
     }
     .book-shop-sub { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
@@ -199,7 +199,6 @@
       display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
       margin-bottom: 16px;
     }
-    .summary-item { }
     .summary-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
                      letter-spacing: 0.08em; color: var(--gray4); margin-bottom: 4px; }
     .summary-value { font-size: 0.9rem; font-weight: 600; color: var(--black); }
@@ -269,9 +268,9 @@
 <div class="book-header">
   <div class="book-logo">
     <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="8" fill="#C9A84C"/>
-      <text x="5" y="29" font-family="Georgia,serif" font-size="22" font-weight="700" fill="#0a0a0a">F</text>
-      <text x="21" y="29" font-family="Georgia,serif" font-size="16" font-style="italic" fill="#0a0a0a">f</text>
+      <rect width="40" height="40" rx="8" fill="white"/>
+      <text x="5" y="29" font-family="Georgia,serif" font-size="26" font-weight="700" fill="#0a0a0a">F</text>
+      <text x="21" y="29" font-family="Georgia,serif" font-size="20" font-style="italic" fill="#0a0a0a">f</text>
     </svg>
   </div>
   <div>
