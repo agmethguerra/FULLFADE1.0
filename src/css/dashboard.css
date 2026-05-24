@@ -390,3 +390,28 @@ tr:hover td { background: var(--bg2); color: var(--text); }
   padding: 4px 10px !important;
   font-size: 0.78rem !important;
 }
+
+/* ─── Notification Bell ─── */
+.notif-bell {
+  position: relative;
+  width: 36px; height: 36px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text);
+  font-size: 1rem; transition: all var(--transition);
+  flex-shrink: 0;
+}
+.notif-bell:hover { background: var(--bg2); border-color: var(--border2); }
+
+.notif-badge {
+  position: absolute; top: -5px; right: -5px;
+  min-width: 18px; height: 18px;
+  background: var(--danger); color: #fff;
+  font-size: 0.65rem; font-weight: 700;
+  border-radius: 999px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--surface);
+  pointer-events: none;
+}

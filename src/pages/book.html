@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agendar Cita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #0a0a0a; --white: #fff;
+      --gold: #C9A84C; --gold-lt: #e8c96a;
+      --gray1: #f7f6f4; --gray2: #eeecea;
+      --gray3: #c8c4bc; --gray4: #7a7570;
+      --gray5: #3a3733;
+      --success: #2f9e44; --danger: #e03131;
+      --radius: 10px; --serif: 'Playfair Display',Georgia,serif;
+      --sans: 'DM Sans',system-ui,sans-serif;
+    }
+    body { font-family: var(--sans); background: var(--gray1); color: var(--black); min-height: 100vh; }
+
+    /* Header */
+    .book-header {
+      background: var(--black); padding: 20px 24px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .book-logo {
+      display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; background: var(--gold);
+      border-radius: 8px; flex-shrink: 0;
+    }
+    .book-logo svg { width: 40px; height: 40px; }
+    .book-shop-name {
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 900;
+      color: var(--white); letter-spacing: 0.02em;
+    }
+    .book-shop-sub { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+    /* Loading */
+    .book-loading {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; gap: 16px;
+      color: var(--gray4); font-size: 0.9rem;
+    }
+    .spin {
+      width: 36px; height: 36px; border: 3px solid var(--gray2);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .book-error {
+      display: none; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; gap: 14px; text-align: center;
+      padding: 32px;
+    }
+    .book-error i { font-size: 3rem; color: var(--gray3); }
+    .book-error h2 { font-family: var(--serif); font-size: 1.4rem; color: var(--gray5); }
+    .book-error p { font-size: 0.88rem; color: var(--gray4); max-width: 360px; line-height: 1.6; }
+
+    /* Wizard layout */
+    .book-body { max-width: 680px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* Steps indicator */
+    .steps-bar {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 28px; background: var(--white);
+      border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--gray2);
+    }
+    .step-item {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      gap: 7px; padding: 12px 8px; font-size: 0.78rem; font-weight: 500;
+      color: var(--gray4); border-right: 1px solid var(--gray2);
+      transition: all 0.2s;
+    }
+    .step-item:last-child { border-right: none; }
+    .step-item.active { background: var(--black); color: var(--white); }
+    .step-item.done   { background: var(--gray1); color: var(--success); }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%; font-size: 0.72rem;
+      font-weight: 700; display: flex; align-items: center; justify-content: center;
+      background: var(--gray2); color: var(--gray4); flex-shrink: 0;
+    }
+    .step-item.active .step-num { background: var(--gold); color: var(--black); }
+    .step-item.done   .step-num { background: var(--success); color: var(--white); }
+
+    /* Card */
+    .book-card {
+      background: var(--white); border: 1px solid var(--gray2);
+      border-radius: 14px; overflow: hidden; margin-bottom: 16px;
+    }
+    .book-card-header {
+      padding: 18px 22px 14px; border-bottom: 1px solid var(--gray2);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .book-card-header i { font-size: 1.1rem; color: var(--gold); }
+    .book-card-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--black); }
+    .book-card-body { padding: 18px 22px; }
+
+    /* Barber cards */
+    .barber-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 12px; }
+    .barber-option {
+      border: 2px solid var(--gray2); border-radius: var(--radius);
+      padding: 16px 12px; text-align: center; cursor: pointer;
+      transition: all 0.18s; user-select: none;
+    }
+    .barber-option:hover { border-color: var(--gold); background: rgba(201,168,76,0.04); }
+    .barber-option.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+    .barber-avatar {
+      width: 48px; height: 48px; border-radius: 50%; background: var(--black);
+      color: var(--gold); display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 900;
+      margin: 0 auto 10px;
+    }
+    .barber-name { font-size: 0.85rem; font-weight: 600; color: var(--black); }
+    .barber-spec { font-size: 0.75rem; color: var(--gray4); margin-top: 3px; }
+
+    /* Service cards */
+    .service-list { display: flex; flex-direction: column; gap: 8px; }
+    .service-option {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; border: 2px solid var(--gray2); border-radius: var(--radius);
+      cursor: pointer; transition: all 0.18s; gap: 12px;
+    }
+    .service-option:hover { border-color: var(--gold); }
+    .service-option.selected { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+    .service-name { font-size: 0.88rem; font-weight: 600; color: var(--black); }
+    .service-dur  { font-size: 0.75rem; color: var(--gray4); margin-top: 2px; }
+    .service-price { font-family: var(--serif); font-weight: 700; color: var(--gold); font-size: 1rem; white-space: nowrap; }
+
+    /* Calendar */
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; padding: 0 2px;
+    }
+    .cal-title { font-weight: 700; font-size: 0.95rem; color: var(--black); }
+    .cal-nav {
+      background: none; border: 1px solid var(--gray2); border-radius: 6px;
+      width: 30px; height: 30px; cursor: pointer; color: var(--gray5);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; font-size: 0.85rem;
+    }
+    .cal-nav:hover { background: var(--gray1); border-color: var(--gray3); }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
+    }
+    .cal-day-label {
+      text-align: center; font-size: 0.68rem; font-weight: 600;
+      color: var(--gray4); text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 4px 0;
+    }
+    .cal-day {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; font-size: 0.83rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s; color: var(--black);
+      border: 2px solid transparent;
+    }
+    .cal-day.empty    { pointer-events: none; }
+    .cal-day.past     { color: var(--gray3); pointer-events: none; }
+    .cal-day.closed   { color: var(--gray3); background: var(--gray1); pointer-events: none;
+                        text-decoration: line-through; }
+    .cal-day.today    { border-color: var(--gold); font-weight: 700; }
+    .cal-day.available:hover { background: var(--gray1); border-color: var(--gray3); }
+    .cal-day.selected { background: var(--black); color: var(--white); border-color: var(--black); }
+
+    /* Time slots */
+    .slots-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(90px,1fr)); gap: 8px; }
+    .slot-btn {
+      padding: 10px 8px; border: 2px solid var(--gray2); border-radius: 8px;
+      text-align: center; font-size: 0.83rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; color: var(--gray5);
+      background: var(--white);
+    }
+    .slot-btn:hover   { border-color: var(--gold); color: var(--black); }
+    .slot-btn.selected { background: var(--black); border-color: var(--black); color: var(--white); }
+    .slot-btn.taken   { background: var(--gray1); color: var(--gray3); cursor: not-allowed;
+                        border-color: var(--gray2); text-decoration: line-through; }
+    .slot-btn.past    { background: var(--gray1); color: var(--gray3); cursor: not-allowed;
+                        border-color: var(--gray2); opacity: 0.6; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--gray5); margin-bottom: 6px; }
+    .form-input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--gray2);
+      border-radius: var(--radius); font-size: 0.9rem; font-family: var(--sans);
+      color: var(--black); background: var(--white); transition: border-color 0.15s;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--black); }
+    .form-input.error { border-color: var(--danger); }
+
+    /* Summary card */
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .summary-item { }
+    .summary-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+                     letter-spacing: 0.08em; color: var(--gray4); margin-bottom: 4px; }
+    .summary-value { font-size: 0.9rem; font-weight: 600; color: var(--black); }
+
+    /* Buttons */
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px 20px; background: var(--black); color: var(--white);
+      font-size: 0.95rem; font-weight: 600; border: none; border-radius: var(--radius);
+      cursor: pointer; transition: all 0.18s; font-family: var(--sans);
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--gray5); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px 20px; background: transparent; color: var(--gray5);
+      font-size: 0.88rem; font-weight: 500; border: 1.5px solid var(--gray2);
+      border-radius: var(--radius); cursor: pointer; transition: all 0.15s;
+      font-family: var(--sans); margin-bottom: 10px;
+    }
+    .btn-secondary:hover { border-color: var(--gray4); color: var(--black); }
+
+    /* Success screen */
+    .success-screen {
+      display: none; flex-direction: column; align-items: center;
+      text-align: center; padding: 48px 24px;
+    }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(47,158,68,0.1); border: 2px solid rgba(47,158,68,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: var(--success); margin: 0 auto 20px;
+    }
+    .success-title {
+      font-family: var(--serif); font-size: 1.6rem; font-weight: 900;
+      color: var(--black); margin-bottom: 10px;
+    }
+    .success-sub { font-size: 0.9rem; color: var(--gray4); line-height: 1.6;
+                   max-width: 380px; margin: 0 auto 24px; }
+    .success-detail {
+      background: var(--gray1); border: 1px solid var(--gray2); border-radius: var(--radius);
+      padding: 16px 20px; text-align: left; width: 100%; max-width: 380px; margin-bottom: 20px;
+    }
+    .success-detail-row {
+      display: flex; justify-content: space-between; gap: 12px;
+      font-size: 0.85rem; padding: 5px 0;
+      border-bottom: 1px solid var(--gray2);
+    }
+    .success-detail-row:last-child { border-bottom: none; }
+    .success-detail-row span:first-child { color: var(--gray4); }
+    .success-detail-row span:last-child  { font-weight: 600; color: var(--black); }
+
+    .empty-state-sm { text-align: center; padding: 24px 0; color: var(--gray4); font-size: 0.88rem; }
+    .empty-state-sm i { font-size: 1.8rem; display: block; margin-bottom: 8px; color: var(--gray3); }
+
+    @media (max-width: 480px) {
+      .steps-bar { display: none; }
+      .book-body { padding: 20px 14px 50px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .barber-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="book-header">
+  <div class="book-logo">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="8" fill="#C9A84C"/>
+      <text x="5" y="29" font-family="Georgia,serif" font-size="22" font-weight="700" fill="#0a0a0a">F</text>
+      <text x="21" y="29" font-family="Georgia,serif" font-size="16" font-style="italic" fill="#0a0a0a">f</text>
+    </svg>
+  </div>
+  <div>
+    <div class="book-shop-name" id="bookShopName">Cargando...</div>
+    <div class="book-shop-sub">Agenda tu cita en línea</div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="book-loading" id="bookLoading">
+  <div class="spin"></div>
+  <span>Cargando disponibilidad...</span>
+</div>
+
+<!-- Error -->
+<div class="book-error" id="bookError">
+  <i class="bi bi-exclamation-circle"></i>
+  <h2>Link no válido</h2>
+  <p>Este enlace de agendamiento no existe o fue desactivado. Contacta a la barbería para obtener el link correcto.</p>
+</div>
+
+<!-- Wizard body -->
+<div class="book-body" id="bookBody" style="display:none">
+
+  <!-- Steps -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-item active" id="step-ind-1">
+      <div class="step-num">1</div><span>Barbero</span>
+    </div>
+    <div class="step-item" id="step-ind-2">
+      <div class="step-num">2</div><span>Servicio</span>
+    </div>
+    <div class="step-item" id="step-ind-3">
+      <div class="step-num">3</div><span>Fecha</span>
+    </div>
+    <div class="step-item" id="step-ind-4">
+      <div class="step-num">4</div><span>Hora</span>
+    </div>
+    <div class="step-item" id="step-ind-5">
+      <div class="step-num">5</div><span>Datos</span>
+    </div>
+  </div>
+
+  <!-- PASO 1: Barbero -->
+  <div id="step1">
+    <div class="book-card">
+      <div class="book-card-header">
+        <i class="bi bi-person-badge"></i>
+        <h3>¿Con quién quieres tu cita?</h3>
+      </div>
+      <div class="book-card-body">
+        <div class="barber-grid" id="barberoGrid">
+          <div class="empty-state-sm"><i class="bi bi-hourglass-split"></i>Cargando barberos...</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" id="step1Next" disabled onclick="goStep(2)">
+      Continuar <i class="bi bi-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- PASO 2: Servicio -->
+  <div id="step2" style="display:none">
+    <div class="book-card">
+      <div class="book-card-header">
+        <i class="bi bi-list-check"></i>
+        <h3>¿Qué servicio deseas?</h3>
+      </div>
+      <div class="book-card-body">
+        <div class="service-list" id="servicioList">
+          <div class="empty-state-sm"><i class="bi bi-hourglass-split"></i>Cargando servicios...</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="goStep(1)"><i class="bi bi-arrow-left"></i> Atrás</button>
+    <button class="btn-primary" id="step2Next" disabled onclick="goStep(3)">
+      Continuar <i class="bi bi-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- PASO 3: Fecha -->
+  <div id="step3" style="display:none">
+    <div class="book-card">
+      <div class="book-card-header">
+        <i class="bi bi-calendar3"></i>
+        <h3>Elige la fecha</h3>
+      </div>
+      <div class="book-card-body">
+        <div class="cal-header">
+          <button class="cal-nav" id="calPrev" onclick="cambiarMes(-1)"><i class="bi bi-chevron-left"></i></button>
+          <span class="cal-title" id="calTitle"></span>
+          <button class="cal-nav" id="calNext" onclick="cambiarMes(1)"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-day-label">Do</div>
+          <div class="cal-day-label">Lu</div>
+          <div class="cal-day-label">Ma</div>
+          <div class="cal-day-label">Mi</div>
+          <div class="cal-day-label">Ju</div>
+          <div class="cal-day-label">Vi</div>
+          <div class="cal-day-label">Sá</div>
+        </div>
+        <div class="cal-grid" id="calGrid" style="margin-top:4px"></div>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="goStep(2)"><i class="bi bi-arrow-left"></i> Atrás</button>
+    <button class="btn-primary" id="step3Next" disabled onclick="goStep(4)">
+      Continuar <i class="bi bi-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- PASO 4: Hora -->
+  <div id="step4" style="display:none">
+    <div class="book-card">
+      <div class="book-card-header">
+        <i class="bi bi-clock"></i>
+        <h3>Elige la hora</h3>
+      </div>
+      <div class="book-card-body">
+        <div id="slotsContainer">
+          <div class="empty-state-sm"><i class="bi bi-hourglass-split"></i>Cargando horarios...</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="goStep(3)"><i class="bi bi-arrow-left"></i> Atrás</button>
+    <button class="btn-primary" id="step4Next" disabled onclick="goStep(5)">
+      Continuar <i class="bi bi-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- PASO 5: Datos del cliente -->
+  <div id="step5" style="display:none">
+    <div class="book-card">
+      <div class="book-card-header">
+        <i class="bi bi-person"></i>
+        <h3>Tus datos</h3>
+      </div>
+      <div class="book-card-body">
+        <!-- Resumen -->
+        <div style="background:var(--gray1);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;
+                    border:1px solid var(--gray2)">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;
+                      color:var(--gray4);margin-bottom:10px">Resumen de tu cita</div>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label">Barbero</div>
+              <div class="summary-value" id="sumBarbero">—</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Servicio</div>
+              <div class="summary-value" id="sumServicio">—</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Fecha</div>
+              <div class="summary-value" id="sumFecha">—</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Hora</div>
+              <div class="summary-value" id="sumHora">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nombre completo *</label>
+          <input class="form-input" type="text" id="clienteNombre" placeholder="Ej: Juan García" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono / WhatsApp *</label>
+          <input class="form-input" type="tel" id="clienteTelefono" placeholder="Ej: 3001234567" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas (opcional)</label>
+          <input class="form-input" type="text" id="clienteNotas" placeholder="Estilo que quieres, alergias, etc." />
+        </div>
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="goStep(4)"><i class="bi bi-arrow-left"></i> Atrás</button>
+    <button class="btn-primary" id="confirmarCitaBtn" onclick="confirmarCita()">
+      <i class="bi bi-check-circle"></i> Confirmar cita
+    </button>
+  </div>
+
+  <!-- Pantalla de éxito -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon"><i class="bi bi-check-lg"></i></div>
+    <h2 class="success-title">¡Cita confirmada!</h2>
+    <p class="success-sub">Tu cita quedó agendada. Te esperamos. Guarda estos datos para recordarla.</p>
+    <div class="success-detail" id="successDetail"></div>
+    <a id="successWa" href="#" target="_blank"
+       style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;
+              padding:12px 22px;border-radius:var(--radius);font-weight:600;text-decoration:none;font-size:0.9rem">
+      <i class="bi bi-whatsapp"></i> Contactar por WhatsApp
+    </a>
+  </div>
+
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../firebase/config.js"></script>
+<script src="../js/book.js"></script>
+</body>
+</html>

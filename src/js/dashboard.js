@@ -112,6 +112,8 @@ requireAuth(async (user) => {
     initReportes(userData.barbershopId);
     initSuscripcion(barbershop);
     initNominas(userData.barbershopId);
+    initHorarios(userData.barbershopId);
+    initNotificaciones(userData.barbershopId);
     subscribeDashboardKPIs(userData.barbershopId);
     subscribePlanChanges(userData.barbershopId);
 
@@ -180,7 +182,7 @@ function mostrarPantallaRecuperacion(user) {
 // ─── Navegación ───────────────────────────────────────────────────────────────
 const moduleNames = {
   dashboard:'Dashboard', caja:'Control de Caja', citas:'Agenda de Citas',
-  clientes:'Clientes', barberos:'Barberos', servicios:'Servicios',
+  horarios:'Horarios', clientes:'Clientes', barberos:'Barberos', servicios:'Servicios',
   reportes:'Reportes', nominas:'Nóminas', suscripcion:'Suscripción'
 };
 
@@ -203,6 +205,9 @@ function goModule(name) {
   }
   if (name === 'nominas' && typeof cargarBarberosSelect === 'function') {
     cargarBarberosSelect();
+  }
+  if (name === 'horarios' && typeof loadHorarios === 'function') {
+    loadHorarios();
   }
 }
 
