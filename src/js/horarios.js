@@ -86,7 +86,7 @@ function renderHorarios(h) {
   container.innerHTML = `
     <div style="margin-bottom:20px">
       <label class="label">Duración de cada cita (slot)</label>
-      <select class="input" id="slotMinutos" style="max-width:200px">
+      <select class="input" id="slotMinutos" style="max-width:100%">
         <option value="15"  ${slotVal===15?'selected':''}>15 minutos</option>
         <option value="20"  ${slotVal===20?'selected':''}>20 minutos</option>
         <option value="30"  ${slotVal===30?'selected':''}>30 minutos</option>
@@ -101,7 +101,7 @@ function renderHorarios(h) {
         return `
           <div style="display:grid;grid-template-columns:140px 1fr;align-items:center;gap:14px;
                       padding:14px 16px;border-radius:var(--radius);background:var(--surface2);
-                      border:1px solid var(--border)" id="dia-row-${dia}">
+                      border:1px solid var(--border); width:96%" id="dia-row-${dia}">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
               <input type="checkbox" id="dia-${dia}" ${cfg.abierto?'checked':''}
                      onchange="toggleDia('${dia}')"
