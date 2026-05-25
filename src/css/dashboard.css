@@ -35,14 +35,13 @@
 .logo {
   display: flex; align-items: center; gap: 10px;
   font-family: arial, Helvetica, sans-serif;
-  font-size: 1.35rem; letter-spacing: 0.04em;
+  font-size: 1.35rem;
   color: var(--text);
   text-decoration: none;
 }
 /* .logo-icon is now an inline SVG — no CSS needed */
 .logo-text {
   font-weight: 700;
-  letter-spacing: 0.04em;
 }
 .sidebar-shop {
   margin-top: 12px;
