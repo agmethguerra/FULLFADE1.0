@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Nombre del negocio en el header
     document.getElementById('bookShopName').textContent = _barbershopData.name || 'Barbería';
-    document.title = `Agendar cita — ${_barbershopData.name || 'Barbería'}`;
+    document.title = `Agendar cita - ${_barbershopData.name || 'Barbería'}`;
 
     // Cargar barberos y servicios en paralelo
     const [bSnap, sSnap] = await Promise.all([
