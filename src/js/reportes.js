@@ -615,27 +615,104 @@ function renderChartBars(porDia) {
   requestAnimationFrame(draw);
 }
 
-// ─── EXPORTAR CSV ─────────────────────────────────────────────────────────────
+// ─── EXPORTAR EXCEL (.xlsx) ───────────────────────────────────────────────────
 function exportarCSV() {
-  if (!canExportCSV()) { showProPlaceholder('reporteList','Exportación CSV'); return; }
+  if (!canExportCSV()) { showProPlaceholder('reporteList','Exportación Excel'); return; }
   if (!_reporteData || _reporteData.length === 0) { Toast.info('No hay datos para exportar.'); return; }
-  const BOM  = '\uFEFF';
-  const sep  = ',';
-  const head = ['Fecha','Hora','Concepto / Servicio','Monto (COP)'].join(sep);
-  const rows = _reporteData.map(d => {
+
+  _cargarSheetJSYExportar();
+}
+
+function _cargarSheetJSYExportar() {
+  // Cargar SheetJS dinámicamente si no está ya disponible
+  if (typeof XLSX !== 'undefined') {
+    _generarXLSReporte();
+    return;
+  }
+  const script  = document.createElement('script');
+  script.src    = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  script.onload = () => _generarXLSReporte();
+  script.onerror= () => Toast.error('No se pudo cargar la librería de Excel. Verifica tu conexión.');
+  document.head.appendChild(script);
+}
+
+function _generarXLSReporte() {
+  const shopName = getShopName ? getShopName() : 'FullFade';
+  const mes      = new Date().toLocaleDateString('es-CO',{month:'long',year:'numeric'});
+  const ahora    = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Hoja 1: Transacciones ────────────────────────────────────────────────────
+  const txRows = _reporteData.map((d, i) => {
     const fecha = d.createdAt?.toDate ? d.createdAt.toDate() : new Date();
-    const fStr  = fecha.toLocaleDateString('es-CO');
-    const hStr  = fecha.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-    const con   = (d.concept||'').replace(/"/g,'""');
-    return [`"${fStr}"`,`"${hStr}"`,`"${con}"`,d.amount||0].join(sep);
-  }).join('\r\n');
-  const blob = new Blob([BOM+head+'\r\n'+rows],{type:'text/csv;charset=utf-8;'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const mes  = new Date().toLocaleDateString('es-CO',{month:'long',year:'numeric'}).replace(/ /g,'_');
-  a.href=url; a.download=`fullfade-reporte-${mes}.csv`; a.click();
-  URL.revokeObjectURL(url);
-  Toast.success('Reporte CSV exportado ✓');
+    return {
+      '#':               i + 1,
+      'Fecha':           fecha.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}),
+      'Hora':            fecha.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+      'Concepto / Servicio': d.concept || 'Servicio',
+      'Monto (COP)':     d.amount || 0,
+    };
+  });
+
+  const wsTx = XLSX.utils.json_to_sheet(txRows, { header: ['#','Fecha','Hora','Concepto / Servicio','Monto (COP)'] });
+
+  // Ancho de columnas
+  wsTx['!cols'] = [
+    { wch: 5  },   // #
+    { wch: 14 },   // Fecha
+    { wch: 8  },   // Hora
+    { wch: 36 },   // Concepto
+    { wch: 16 },   // Monto
+  ];
+
+  // Fila de TOTAL al final
+  const totalRow  = _reporteData.length + 2; // +1 header +1 base-1
+  const totalMes  = _reporteData.reduce((s, d) => s + (d.amount || 0), 0);
+  const cellTotal = XLSX.utils.encode_cell({ r: totalRow, c: 3 });
+  const cellMonto = XLSX.utils.encode_cell({ r: totalRow, c: 4 });
+  wsTx[cellTotal] = { t: 's', v: `TOTAL (${_reporteData.length} registros)` };
+  wsTx[cellMonto] = { t: 'n', v: totalMes };
+  if (!wsTx['!ref']) wsTx['!ref'] = `A1:E${totalRow + 1}`;
+  else wsTx['!ref'] = `A1:E${totalRow + 1}`;
+
+  XLSX.utils.book_append_sheet(wb, wsTx, 'Transacciones');
+
+  // ── Hoja 2: Resumen del mes ──────────────────────────────────────────────────
+  const resumenData = [
+    ['Negocio',        shopName],
+    ['Período',        mes],
+    ['Generado el',    ahora],
+    ['', ''],
+    ['Métrica',        'Valor'],
+    ['Total ingresos', totalMes],
+    ['Nº de servicios',_reporteData.length],
+  ];
+
+  // Mejor día
+  const porDia = {};
+  _reporteData.forEach(d => {
+    if (d.createdAt) {
+      const f   = d.createdAt?.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+      const key = f.toISOString().slice(0, 10);
+      porDia[key] = (porDia[key] || 0) + (d.amount || 0);
+    }
+  });
+  let mejorDia = '—', mejorMonto = 0;
+  Object.entries(porDia).forEach(([dia, monto]) => {
+    if (monto > mejorMonto) { mejorMonto = monto; mejorDia = dia; }
+  });
+  resumenData.push(['Mejor día',  mejorDia]);
+  resumenData.push(['Ingreso ese día', mejorMonto]);
+
+  const wsRes = XLSX.utils.aoa_to_sheet(resumenData);
+  wsRes['!cols'] = [{ wch: 20 }, { wch: 30 }];
+  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumen del mes');
+
+  // ── Descargar ────────────────────────────────────────────────────────────────
+  const nombreArchivo = `fullfade-reporte-${mes.replace(/ /g,'_')}.xlsx`;
+  XLSX.writeFile(wb, nombreArchivo);
+  Toast.success('Reporte Excel exportado ✓');
 }
 
 function escHtml(str) {

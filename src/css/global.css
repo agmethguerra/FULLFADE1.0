@@ -26,8 +26,8 @@
   --warning: #e67700;
 
   /* Tipografía */
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body:    'DM Sans', sans-serif;
+  --font-display: arial;
+  --font-body:    arial;
 
   /* Espaciado */
   --radius:    8px;
