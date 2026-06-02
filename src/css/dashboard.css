@@ -313,8 +313,9 @@ tr:hover td { background: var(--bg2); color: var(--text); }
 /* ============================================================
    RESPONSIVE — tablet (≤ 1024px)
    ============================================================ */
-@media (max-width: 1024px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 1224px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }  
+  .sidebar-footer { padding-bottom: 75px;}
 }
 
 /* ============================================================
@@ -331,9 +332,6 @@ tr:hover td { background: var(--bg2); color: var(--text); }
     transform: translateX(0);
     box-shadow: var(--shadow-lg);
   }
-  .sidebar-footer {
-  padding-bottom: 60px;
-}
 
   /* Main ocupa todo el ancho */
   .main-content { margin-left: 0; }
