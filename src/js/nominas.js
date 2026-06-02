@@ -223,26 +223,24 @@ function generarNominaPDF() {
     return;
   }
 
-  const shopName        = getShopName();
-  const factNum         = `NOM-${Date.now().toString().slice(-6)}`;
-  const fechaEmision    = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
-  const periodoStr      = `${formatDateShort(_nominaDesde)} — ${formatDateShort(_nominaHasta)}`;
-  const porcentajeCasa  = 100 - _nominaPorcentaje;
-  const totalCasa       = Math.round(_nominaTotal * (porcentajeCasa / 100));
+  const shopName       = getShopName();
+  const factNum        = `NOM-${Date.now().toString().slice(-6)}`;
+  const fechaEmision   = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
+  const periodoStr     = `${formatDateShort(_nominaDesde)} — ${formatDateShort(_nominaHasta)}`;
+  const porcentajeCasa = 100 - _nominaPorcentaje;
+  const totalCasa      = Math.round(_nominaTotal * (porcentajeCasa / 100));
 
+  // Tabla detallada: cada servicio como una fila Concepto / Monto
   const filas = _nominaItems.map((d, i) => {
     const fecha    = d.date?.toDate ? d.date.toDate() : new Date(d.date);
     const precio   = d.servicePrice || 0;
-    const ganancia = Math.round(precio * (_nominaPorcentaje / 100));
     const fStr     = fecha.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
     const hStr     = fecha.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+    const concepto = `${(d.serviceName||'Servicio').replace(/</g,'&lt;')} — ${(d.clientName||'—').replace(/</g,'&lt;')} · ${fStr} ${hStr}`;
     return `<tr>
       <td>${i+1}</td>
-      <td>${fStr}<br><span style="color:#888;font-size:0.78em">${hStr}</span></td>
-      <td>${(d.clientName||'—').replace(/</g,'&lt;')}</td>
-      <td>${(d.serviceName||'—').replace(/</g,'&lt;')}</td>
+      <td>${concepto}</td>
       <td class="money">${formatCOP(precio)}</td>
-      <td class="money" style="color:#2f9e44">${formatCOP(ganancia)}</td>
     </tr>`;
   }).join('');
 
@@ -252,156 +250,120 @@ function generarNominaPDF() {
 <meta charset="UTF-8"/>
 <title>Nómina ${factNum} — ${_nominaBarberoNombre.replace(/</g,'&lt;')}</title>
 <style>
-  *{ margin:0;padding:0;box-sizing:border-box }
-  body{ font-family:'Helvetica Neue',Arial,sans-serif;background:#fff;color:#111;font-size:13px }
-  .page{ max-width:820px;margin:0 auto;padding:44px 48px 60px }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Helvetica Neue',Arial,sans-serif; background:#fff; color:#111; font-size:13px; }
+  .page { max-width:760px; margin:0 auto; padding:48px 48px 64px; }
 
-  /* Header */
-  .header{ display:flex;justify-content:space-between;align-items:flex-start;
-           margin-bottom:32px;padding-bottom:20px;border-bottom:3px solid #111 }
-  .brand{ display:flex;align-items:center;gap:12px }
-  .brand-icon{ width:42px;height:42px;background:#111;border-radius:8px;
-               display:flex;align-items:center;justify-content:center;
-               color:#C9A84C;font-size:1.4rem;flex-shrink:0 }
-  .brand-name{ font-size:1.9rem;font-weight:900;letter-spacing:0.08em;color:#111;line-height:1 }
-  .brand-sub{ font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:#888;margin-top:3px }
-  .doc-title{ font-size:1.7rem;font-weight:800;color:#111;letter-spacing:0.03em }
-  .doc-sub{ font-size:0.78rem;color:#888;margin-top:3px }
+  /* ── Encabezado ── */
+  .hd { display:flex; justify-content:space-between; align-items:flex-start;
+        padding-bottom:18px; margin-bottom:28px; border-bottom:2px solid #111; }
+  .brand-name { font-size:1.6rem; font-weight:900; letter-spacing:0.06em; color:#111; line-height:1; }
+  .brand-sub  { font-size:0.68rem; letter-spacing:0.16em; text-transform:uppercase; color:#555; margin-top:4px; }
+  .hd-right   { text-align:right; }
+  .doc-titulo { font-size:1.4rem; font-weight:800; color:#111; letter-spacing:0.04em; }
+  .doc-meta   { font-size:0.78rem; color:#555; margin-top:5px; line-height:1.7; }
 
-  /* Info band */
-  .info-band{ background:#111;color:#fff;border-radius:10px;padding:16px 22px;
-              margin-bottom:28px;display:flex;gap:32px;flex-wrap:wrap }
-  .info-item label{ font-size:0.62rem;text-transform:uppercase;letter-spacing:0.14em;
-                    color:#C9A84C;font-weight:600;display:block;margin-bottom:3px }
-  .info-item span{ font-size:0.9rem;font-weight:500 }
+  /* ── Bloque de info ── */
+  .info-block { border:1px solid #ccc; padding:14px 18px; margin-bottom:20px;
+                display:flex; gap:32px; flex-wrap:wrap; }
+  .info-item label { font-size:0.63rem; text-transform:uppercase; letter-spacing:0.12em;
+                     color:#777; font-weight:600; display:block; margin-bottom:2px; }
+  .info-item span  { font-size:0.9rem; font-weight:600; color:#111; }
 
-  /* Barbero highlight */
-  .barbero-card{ border:2px solid #C9A84C;border-radius:10px;padding:16px 22px;
-                 margin-bottom:24px;display:flex;align-items:center;gap:20px;
-                 background:linear-gradient(135deg,#fffdf5,#fff) }
-  .barbero-avatar{ width:52px;height:52px;border-radius:50%;background:#111;
-                   color:#C9A84C;display:flex;align-items:center;justify-content:center;
-                   font-size:1.4rem;font-weight:900;flex-shrink:0 }
-  .barbero-info-name{ font-size:1.15rem;font-weight:800;color:#111 }
-  .barbero-info-sub{ font-size:0.8rem;color:#888;margin-top:2px }
-  .comision-badge{ margin-left:auto;background:#C9A84C;color:#fff;border-radius:8px;
-                   padding:8px 18px;font-size:1.2rem;font-weight:800;white-space:nowrap }
+  /* ── Datos del barbero ── */
+  .barbero-block { border:1px solid #ccc; padding:12px 18px; margin-bottom:28px;
+                   display:flex; justify-content:space-between; align-items:center; }
+  .barbero-nombre { font-size:1rem; font-weight:800; color:#111; }
+  .barbero-sub    { font-size:0.78rem; color:#555; margin-top:2px; }
+  .comision-txt   { font-size:0.85rem; font-weight:700; color:#111; }
 
-  /* Tabla */
-  table{ width:100%;border-collapse:collapse;margin-bottom:0 }
-  thead tr{ background:#f5f5f5 }
-  th{ padding:9px 12px;text-align:left;font-size:0.67rem;text-transform:uppercase;
-      letter-spacing:0.08em;color:#555;font-weight:700;border-bottom:2px solid #e0e0e0 }
-  td{ padding:9px 12px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:top }
-  tr:nth-child(even) td{ background:#fafafa }
-  tr:last-child td{ border-bottom:none }
-  .money{ text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap }
+  /* ── Tabla ── */
+  table { width:100%; border-collapse:collapse; margin-bottom:0; }
+  th { padding:9px 12px; text-align:left; font-size:0.67rem; text-transform:uppercase;
+       letter-spacing:0.08em; color:#111; font-weight:700;
+       border-top:2px solid #111; border-bottom:1px solid #111; }
+  td { padding:9px 12px; border-bottom:1px solid #ddd; color:#222; vertical-align:top; }
+  .money { text-align:right; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-  /* Totales */
-  .totales-grid{ display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
-                 border:2px solid #111;border-radius:10px;overflow:hidden;margin-top:24px }
-  .total-box{ padding:16px 20px;text-align:center }
-  .total-box:not(:last-child){ border-right:1px solid #e0e0e0 }
-  .total-box.highlight{ background:#111;color:#fff }
-  .total-label{ font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;
-                color:#888;font-weight:600;margin-bottom:6px }
-  .total-box.highlight .total-label{ color:#C9A84C }
-  .total-value{ font-size:1.25rem;font-weight:800;color:#111 }
-  .total-box.highlight .total-value{ color:#C9A84C;font-size:1.5rem }
+  /* ── Filas de totales ── */
+  .subtotal-row td { border-top:1px solid #aaa; border-bottom:none;
+                     padding:9px 12px; font-size:0.88rem; color:#333; }
+  .subtotal-row .money { font-weight:600; }
+  .total-row td   { border-top:2px solid #111; border-bottom:none;
+                    padding:11px 12px; font-weight:700; font-size:0.95rem; color:#111; }
+  .total-row .money { font-size:1.1rem; }
 
-  /* Footer */
-  .footer{ margin-top:40px;padding-top:18px;border-top:1px solid #e0e0e0;
-           display:flex;justify-content:space-between;align-items:flex-end;gap:16px }
-  .footer-left{ font-size:0.72rem;color:#aaa;line-height:1.6 }
-  .footer-left strong{ color:#111;display:block;font-size:0.82rem;margin-bottom:2px }
-  .footer-right{ font-size:0.7rem;color:#bbb;text-align:right;line-height:1.5 }
-  .gold{ color:#C9A84C }
+  /* ── Firma ── */
+  .firma-wrap { display:flex; justify-content:flex-end; margin-top:44px; }
+  .firma-line { border-top:1px solid #555; width:220px; text-align:center;
+                padding-top:7px; font-size:0.75rem; color:#444; }
 
-  .firma-box{ margin-top:48px;display:flex;justify-content:flex-end }
-  .firma-line{ border-top:1px solid #111;width:220px;text-align:center;
-               padding-top:6px;font-size:0.75rem;color:#555 }
+  /* ── Footer ── */
+  .footer { margin-top:40px; padding-top:14px; border-top:1px solid #bbb;
+            display:flex; justify-content:space-between; font-size:0.7rem; color:#777; line-height:1.6; }
 
-  @media print{
-    body{ -webkit-print-color-adjust:exact;print-color-adjust:exact }
-    .page{ padding:20px }
+  @media print {
+    .page { padding:24px; }
   }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <div class="header">
-    <div class="brand">
-      <div class="brand-icon">✂</div>
-      <div>
-        <div class="brand-name">FULL<span style="opacity:0.4">FADE</span></div>
-        <div class="brand-sub">Software para Barberías</div>
+  <div class="hd">
+    <div>
+      <div class="brand-name">FULLFADE</div>
+      <div class="brand-sub">Software para Barberías</div>
+    </div>
+    <div class="hd-right">
+      <div class="doc-titulo">LIQUIDACIÓN DE NÓMINA</div>
+      <div class="doc-meta">
+        N° ${factNum}<br>
+        Emitida: ${fechaEmision}
       </div>
     </div>
-    <div style="text-align:right">
-      <div class="doc-title">LIQUIDACIÓN DE NÓMINA</div>
-      <div class="doc-sub">N° ${factNum} · Emitida: ${fechaEmision}</div>
-    </div>
   </div>
 
-  <div class="info-band">
-    <div class="info-item">
-      <label>Negocio</label>
-      <span>${shopName.replace(/</g,'&lt;')}</span>
-    </div>
-    <div class="info-item">
-      <label>Período</label>
-      <span>${periodoStr}</span>
-    </div>
-    <div class="info-item">
-      <label>Total cortes</label>
-      <span>${_nominaItems.length} servicio${_nominaItems.length!==1?'s':''}</span>
-    </div>
-    <div class="info-item">
-      <label>Comisión acordada</label>
-      <span>${_nominaPorcentaje}% barbero / ${porcentajeCasa}% casa</span>
-    </div>
+  <div class="info-block">
+    <div class="info-item"><label>Negocio</label><span>${shopName.replace(/</g,'&lt;')}</span></div>
+    <div class="info-item"><label>Período</label><span>${periodoStr}</span></div>
+    <div class="info-item"><label>Servicios</label><span>${_nominaItems.length}</span></div>
   </div>
 
-  <div class="barbero-card">
-    <div class="barbero-avatar">${(_nominaBarberoNombre||'B').charAt(0).toUpperCase()}</div>
+  <div class="barbero-block">
     <div>
-      <div class="barbero-info-name">${_nominaBarberoNombre.replace(/</g,'&lt;')}</div>
-      <div class="barbero-info-sub">Barbero · Período: ${periodoStr}</div>
+      <div class="barbero-nombre">${_nominaBarberoNombre.replace(/</g,'&lt;')}</div>
+      <div class="barbero-sub">Barbero · ${periodoStr}</div>
     </div>
-    <div class="comision-badge">${_nominaPorcentaje}%</div>
+    <div class="comision-txt">Comisión: ${_nominaPorcentaje}% barbero / ${porcentajeCasa}% casa</div>
   </div>
 
   <table>
     <thead>
       <tr>
-        <th style="width:28px">#</th>
-        <th>Fecha / Hora</th>
-        <th>Cliente</th>
-        <th>Servicio realizado</th>
-        <th style="text-align:right">Precio</th>
-        <th style="text-align:right">Ganancia (${_nominaPorcentaje}%)</th>
+        <th style="width:32px">#</th>
+        <th>Concepto</th>
+        <th style="text-align:right">Monto</th>
       </tr>
     </thead>
     <tbody>${filas}</tbody>
+    <tfoot>
+      <tr class="subtotal-row">
+        <td colspan="2">Subtotal bruto</td>
+        <td class="money">${formatCOP(_nominaTotal)}</td>
+      </tr>
+      <tr class="subtotal-row">
+        <td colspan="2">Para la casa (${porcentajeCasa}%)</td>
+        <td class="money">${formatCOP(totalCasa)}</td>
+      </tr>
+      <tr class="total-row">
+        <td colspan="2">TOTAL A PAGAR — ${_nominaBarberoNombre.replace(/</g,'&lt;')}</td>
+        <td class="money">${formatCOP(_nominaTotalBarbero)}</td>
+      </tr>
+    </tfoot>
   </table>
 
-  <div class="totales-grid">
-    <div class="total-box">
-      <div class="total-label">Total facturado</div>
-      <div class="total-value">${formatCOP(_nominaTotal)}</div>
-    </div>
-    <div class="total-box">
-      <div class="total-label">Para la casa (${porcentajeCasa}%)</div>
-      <div class="total-value">${formatCOP(totalCasa)}</div>
-    </div>
-    <div class="total-box highlight">
-      <div class="total-label">A pagar a ${_nominaBarberoNombre.replace(/</g,'&lt;')}</div>
-      <div class="total-value">${formatCOP(_nominaTotalBarbero)}</div>
-    </div>
-  </div>
-
-  <div class="firma-box">
+  <div class="firma-wrap">
     <div class="firma-line">
       Firma y recibido conforme<br>
       <strong>${_nominaBarberoNombre.replace(/</g,'&lt;')}</strong>
@@ -409,15 +371,8 @@ function generarNominaPDF() {
   </div>
 
   <div class="footer">
-    <div class="footer-left">
-      <strong>FullFade</strong>
-      Software de gestión para barberías<br>
-      <span class="gold">fullfade.com</span>
-    </div>
-    <div class="footer-right">
-      Documento generado automáticamente por FullFade.<br>
-      Período: ${periodoStr} · Comisión: ${_nominaPorcentaje}%
-    </div>
+    <span>FullFade · fullfade.com</span>
+    <span>Período: ${periodoStr} · Comisión: ${_nominaPorcentaje}%</span>
   </div>
 
 </div>

@@ -221,6 +221,30 @@ async function guardarCita() {
       Toast.info('Cliente nuevo registrado automáticamente.');
     }
 
+    // Verificar que no exista otra cita del mismo barbero en la misma fecha y hora exacta
+    const inicioDia = new Date(fechaStr.slice(0, 10) + 'T00:00:00');
+    const finDia    = new Date(fechaStr.slice(0, 10) + 'T23:59:59');
+    const conflictoSnap = await db.collection('appointments')
+      .where('barbershopId', '==', citasBarbershopId)
+      .where('employeeId',   '==', barbero)
+      .where('date',         '>=', inicioDia)
+      .where('date',         '<=', finDia)
+      .where('status',       '==', 'scheduled')
+      .get();
+
+    let slotOcupado = false;
+    conflictoSnap.forEach(doc => {
+      const dt = doc.data().date?.toDate ? doc.data().date.toDate() : new Date(doc.data().date);
+      if (dt.getTime() === fecha.getTime()) slotOcupado = true;
+    });
+
+    if (slotOcupado) {
+      Toast.error(`${barberoData?.name || 'El barbero'} ya tiene una cita a esa hora. Elige otro horario.`);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Agendar cita';
+      return;
+    }
+
     await db.collection('appointments').add({
       barbershopId: citasBarbershopId,
       clientName:   clienteNombre,
@@ -249,13 +273,14 @@ async function guardarCita() {
 
 // ─── Suscripción en tiempo real ───────────────────────────────────────────────
 function subscribeCitas() {
+  // Escuchar TODOS los estados (scheduled, completed, cancelled) para que
+  // cualquier cambio de estado se refleje en la tabla inmediatamente.
   const now = new Date();
   const unsub = db.collection('appointments')
     .where('barbershopId', '==', citasBarbershopId)
     .where('date', '>=', now)
-    .where('status', '==', 'scheduled')
     .orderBy('date')
-    .limit(50)
+    .limit(100)
     .onSnapshot(snap => {
       const newIds = new Set(snap.docChanges().filter(ch=>ch.type==='added').map(ch=>ch.doc.id));
       renderCitasFromDocs(snap.docs, newIds);
@@ -269,7 +294,7 @@ async function loadCitasFallback() {
     const snap = await db.collection('appointments')
       .where('barbershopId', '==', citasBarbershopId)
       .where('date', '>=', new Date())
-      .orderBy('date').limit(50).get();
+      .orderBy('date').limit(100).get();
     renderCitasFromDocs(snap.docs);
   } catch(e) { console.error(e); }
 }

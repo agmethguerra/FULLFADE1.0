@@ -265,20 +265,19 @@ function generarFacturaPDF() {
     return;
   }
 
-  const shopName  = getShopName();
-  const fechaHoy  = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
+  const shopName   = getShopName();
+  const fechaHoy   = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
   const periodoStr = `${formatDateShort(_facturaDesde)} — ${formatDateShort(_facturaHasta)}`;
-  const factNum   = `FF-${Date.now().toString().slice(-6)}`;
+  const factNum    = `FF-${Date.now().toString().slice(-6)}`;
 
   const filas = _facturaItems.map((d, i) => {
     const fecha = d.createdAt?.toDate ? d.createdAt.toDate() : new Date();
     const f     = fecha.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
     const h     = fecha.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+    const concepto = `${(d.concept||'Servicio').replace(/</g,'&lt;')} — ${f} ${h}`;
     return `<tr>
       <td>${i+1}</td>
-      <td>${f}</td>
-      <td>${h}</td>
-      <td>${(d.concept||'Servicio').replace(/</g,'&lt;')}</td>
+      <td>${concepto}</td>
       <td class="money">${formatCOP(d.amount)}</td>
     </tr>`;
   }).join('');
@@ -287,52 +286,46 @@ function generarFacturaPDF() {
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<title>Factura ${factNum} — ${shopName}</title>
+<title>Reporte ${factNum} — ${shopName}</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background:#fff; color:#111; font-size:13px; }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Helvetica Neue',Arial,sans-serif; background:#fff; color:#111; font-size:13px; }
+  .page { max-width:760px; margin:0 auto; padding:48px 48px 64px; }
 
-  .page { max-width:800px; margin:0 auto; padding:48px 48px 64px; }
+  /* ── Encabezado ── */
+  .hd { display:flex; justify-content:space-between; align-items:flex-start;
+        padding-bottom:18px; margin-bottom:28px; border-bottom:2px solid #111; }
+  .brand-name { font-size:1.6rem; font-weight:900; letter-spacing:0.06em; color:#111; line-height:1; }
+  .brand-sub  { font-size:0.68rem; letter-spacing:0.16em; text-transform:uppercase; color:#555; margin-top:4px; }
+  .hd-right   { text-align:right; }
+  .doc-titulo { font-size:1.4rem; font-weight:800; color:#111; letter-spacing:0.04em; }
+  .doc-meta   { font-size:0.78rem; color:#555; margin-top:5px; line-height:1.7; }
 
-  /* Header con marca */
-  .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:40px; padding-bottom:24px; border-bottom:3px solid #111; }
-  .brand  { display:flex; align-items:center; gap:12px; }
-  .brand-icon { width:44px; height:44px; background:#111; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#C9A84C; font-size:1.5rem; flex-shrink:0; }
-  .brand-name { font-size:2rem; font-weight:900; letter-spacing:0.08em; color:#111; line-height:1; }
-  .brand-sub  { font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-top:3px; }
-  .header-right { text-align:right; }
-  .factura-titulo { font-size:1.8rem; font-weight:800; color:#111; letter-spacing:0.04em; }
-  .factura-num    { font-size:0.78rem; color:#888; margin-top:4px; }
-  .factura-fecha  { font-size:0.78rem; color:#888; }
+  /* ── Bloque de info ── */
+  .info-block { border:1px solid #ccc; padding:14px 18px; margin-bottom:28px;
+                display:flex; gap:32px; flex-wrap:wrap; }
+  .info-item label { font-size:0.63rem; text-transform:uppercase; letter-spacing:0.12em;
+                     color:#777; font-weight:600; display:block; margin-bottom:2px; }
+  .info-item span  { font-size:0.9rem; font-weight:600; color:#111; }
 
-  /* Info banda dorada */
-  .info-band { background:#111; color:#fff; border-radius:10px; padding:18px 24px; margin-bottom:32px; display:flex; gap:40px; flex-wrap:wrap; }
-  .info-item label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.14em; color:#C9A84C; font-weight:600; display:block; margin-bottom:4px; }
-  .info-item span  { font-size:0.92rem; font-weight:500; }
-
-  /* Tabla */
+  /* ── Tabla ── */
   table { width:100%; border-collapse:collapse; margin-bottom:0; }
-  thead tr { background:#f5f5f5; }
-  th { padding:10px 14px; text-align:left; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:#555; font-weight:700; border-bottom:2px solid #e0e0e0; }
-  td { padding:10px 14px; border-bottom:1px solid #f0f0f0; color:#333; }
-  tr:last-child td { border-bottom:none; }
-  tr:nth-child(even) td { background:#fafafa; }
-  .money { text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
+  th { padding:9px 12px; text-align:left; font-size:0.67rem; text-transform:uppercase;
+       letter-spacing:0.08em; color:#111; font-weight:700;
+       border-top:2px solid #111; border-bottom:1px solid #111; }
+  td { padding:9px 12px; border-bottom:1px solid #ddd; color:#222; vertical-align:top; }
+  .money { text-align:right; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-  /* Total */
-  .total-row { background:#111; color:#fff; }
-  .total-row td { border:none; padding:14px 14px; font-size:1rem; }
-  .total-row .money { color:#C9A84C; font-size:1.2rem; font-weight:800; }
+  /* ── Fila de total ── */
+  .total-row td { border-top:2px solid #111; border-bottom:none; padding:11px 12px;
+                  font-weight:700; font-size:0.95rem; color:#111; }
+  .total-row .money { font-size:1.1rem; }
 
-  /* Footer */
-  .footer { margin-top:48px; padding-top:20px; border-top:1px solid #e0e0e0; display:flex; justify-content:space-between; align-items:flex-end; gap:20px; }
-  .footer-brand { font-size:0.72rem; color:#aaa; }
-  .footer-brand strong { color:#111; display:block; font-size:0.85rem; margin-bottom:2px; }
-  .footer-note { font-size:0.7rem; color:#bbb; text-align:right; line-height:1.5; }
-  .gold { color:#C9A84C; }
+  /* ── Footer ── */
+  .footer { margin-top:40px; padding-top:14px; border-top:1px solid #bbb;
+            display:flex; justify-content:space-between; font-size:0.7rem; color:#777; line-height:1.6; }
 
   @media print {
-    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     .page { padding:24px; }
   }
 </style>
@@ -340,81 +333,56 @@ function generarFacturaPDF() {
 <body>
 <div class="page">
 
-  <div class="header">
-    <div class="brand">
-      <div class="brand-icon">✂</div>
-      <div>
-        <div class="brand-name">FULL<span style="opacity:0.4">FADE</span></div>
-        <div class="brand-sub">Software para Barberías</div>
-      </div>
+  <div class="hd">
+    <div>
+      <div class="brand-name">FULLFADE</div>
+      <div class="brand-sub">Software para Barberías</div>
     </div>
-    <div class="header-right">
-      <div class="factura-titulo">FACTURA</div>
-      <div class="factura-num"># ${factNum}</div>
-      <div class="factura-fecha">Emitida: ${fechaHoy}</div>
+    <div class="hd-right">
+      <div class="doc-titulo">REPORTE DE INGRESOS</div>
+      <div class="doc-meta">
+        N° ${factNum}<br>
+        Emitido: ${fechaHoy}
+      </div>
     </div>
   </div>
 
-  <div class="info-band">
-    <div class="info-item">
-      <label>Negocio</label>
-      <span>${shopName.replace(/</g,'&lt;')}</span>
-    </div>
-    <div class="info-item">
-      <label>Período facturado</label>
-      <span>${periodoStr}</span>
-    </div>
-    <div class="info-item">
-      <label>Total servicios</label>
-      <span>${_facturaItems.length} registros</span>
-    </div>
+  <div class="info-block">
+    <div class="info-item"><label>Negocio</label><span>${shopName.replace(/</g,'&lt;')}</span></div>
+    <div class="info-item"><label>Período</label><span>${periodoStr}</span></div>
+    <div class="info-item"><label>Registros</label><span>${_facturaItems.length}</span></div>
   </div>
 
   <table>
     <thead>
       <tr>
-        <th style="width:36px">#</th>
-        <th>Fecha</th>
-        <th>Hora</th>
-        <th>Servicio facturado</th>
+        <th style="width:32px">#</th>
+        <th>Concepto</th>
         <th style="text-align:right">Monto</th>
       </tr>
     </thead>
     <tbody>${filas}</tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="4" style="font-weight:700;letter-spacing:0.04em">
-          TOTAL FACTURADO — ${_facturaItems.length} servicios · ${periodoStr}
-        </td>
+        <td colspan="2">TOTAL</td>
         <td class="money">${formatCOP(_facturaTotal)}</td>
       </tr>
     </tfoot>
   </table>
 
   <div class="footer">
-    <div class="footer-brand">
-      <strong>FullFade</strong>
-      Software de gestión para barberías<br>
-      <span class="gold">fullfade.com</span>
-    </div>
-    <div class="footer-note">
-      Este documento es generado automáticamente por FullFade.<br>
-      No requiere firma para su validez interna.
-    </div>
+    <span>FullFade · fullfade.com</span>
+    <span>Documento generado automáticamente. No requiere firma para validez interna.</span>
   </div>
 
 </div>
 </body>
 </html>`;
 
-  // Abrir en ventana nueva y disparar impresión/guardar como PDF
   const win = window.open('', '_blank', 'width=900,height=700');
   win.document.write(html);
   win.document.close();
-  win.onload = () => {
-    setTimeout(() => win.print(), 300);
-  };
-
+  win.onload = () => { setTimeout(() => win.print(), 300); };
   Toast.success('PDF generado — usa "Guardar como PDF" en el diálogo de impresión ✓');
 }
 

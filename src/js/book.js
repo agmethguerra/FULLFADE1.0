@@ -9,6 +9,7 @@ let _horario       = null;
 let _barberos      = [];
 let _servicios     = [];
 let _slotsTomados  = {}; // { 'HH:MM': true } para la fecha+barbero seleccionado
+let _lastSlotsTodos = []; // copia de los slots generados para refrescar la vista
 
 let sel = {
   barberoId:    null, barberoNombre: '',
@@ -16,6 +17,9 @@ let sel = {
   fecha:        null, fechaStr: '',
   hora:         null,
 };
+
+// ID del lock temporal que este cliente colocó (para liberarlo si desiste)
+let _lockDocId = null;
 
 let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth();
@@ -264,6 +268,7 @@ async function loadSlots() {
   const fin    = new Date(sel.fechaStr + 'T23:59:59');
 
   try {
+    // Citas ya confirmadas
     const snap = await db.collection('appointments')
       .where('barbershopId', '==', _barbershopId)
       .where('employeeId',   '==', sel.barberoId)
@@ -280,9 +285,29 @@ async function loadSlots() {
       _slotsTomados[hStr] = true;
     });
 
+    // Locks temporales activos de otros usuarios (no expirados)
+    const ahora = new Date();
+    const lockSnap = await db.collection('slot_locks')
+      .where('barbershopId', '==', _barbershopId)
+      .where('barberoId',    '==', sel.barberoId)
+      .where('fecha',        '==', sel.fechaStr)
+      .get();
+
+    lockSnap.forEach(doc => {
+      // Ignorar el propio lock y locks ya expirados
+      if (doc.id === _lockDocId) return;
+      const lk = doc.data();
+      const expira = lk.expira?.toDate ? lk.expira.toDate() : new Date(lk.expira);
+      if (expira > ahora) {
+        _slotsTomados[lk.hora] = true; // marcar como ocupado temporalmente
+      }
+    });
+
+    _lastSlotsTodos = todos; // guardar para refrescar si expira el lock
     renderSlots(todos);
   } catch(err) {
     console.error(err);
+    _lastSlotsTodos = todos;
     renderSlots(todos); // mostrar slots sin bloquear si falla la consulta
   }
 }
@@ -305,7 +330,11 @@ function generarSlots(apertura, cierre, slotMinutos) {
 function renderSlots(todos) {
   const container = document.getElementById('slotsContainer');
   const now       = new Date();
-  const isToday   = sel.fechaStr === now.toISOString().slice(0,10);
+  // Usar fecha local (no UTC) para evitar desfase horario en Colombia (UTC-5):
+  // toISOString() devuelve UTC y después de las 7 PM ya es "mañana" en UTC,
+  // lo que hace que isToday sea true para el día siguiente y bloquea sus slots.
+  const todayStr  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const isToday   = sel.fechaStr === todayStr;
   const nowMins   = now.getHours() * 60 + now.getMinutes();
 
   if (todos.length === 0) {
@@ -340,11 +369,57 @@ function renderSlots(todos) {
   container.innerHTML = `<div class="slots-grid">${html}</div>`;
 }
 
-function selectSlot(hora) {
+async function selectSlot(hora) {
+  // Si ya había un lock previo (cambió de hora), liberarlo primero
+  await _liberarLock();
+
   sel.hora = hora;
   document.querySelectorAll('.slot-btn').forEach(el => el.classList.remove('selected'));
   event.target.classList.add('selected');
   document.getElementById('step4Next').disabled = false;
+
+  // Colocar lock temporal: dura 3 minutos máximo
+  await _colocarLock(hora);
+}
+
+// ── Lock optimista: reserva el slot temporalmente mientras el usuario llena datos ──
+async function _colocarLock(hora) {
+  if (!sel.barberoId || !sel.fechaStr || !hora) return;
+  try {
+    const expira = new Date(Date.now() + 3 * 60 * 1000); // 3 minutos
+    const ref = await db.collection('slot_locks').add({
+      barbershopId: _barbershopId,
+      barberoId:    sel.barberoId,
+      fecha:        sel.fechaStr,
+      hora:         hora,
+      expira:       expira,
+      createdAt:    firebase.firestore.FieldValue.serverTimestamp()
+    });
+    _lockDocId = ref.id;
+
+    // Auto-liberar cuando vence el timer (por si el usuario abandona sin acción)
+    setTimeout(() => {
+      if (_lockDocId === ref.id) {
+        _liberarLock();
+        // Si el slot ya no está disponible, actualizar la vista
+        renderSlots(_lastSlotsTodos || []);
+      }
+    }, 3 * 60 * 1000);
+  } catch(err) {
+    // Si falla el lock no bloqueamos al usuario; el double-check en confirmarCita protege igual
+    console.warn('Lock no pudo crearse:', err.message);
+  }
+}
+
+async function _liberarLock() {
+  if (!_lockDocId) return;
+  const id = _lockDocId;
+  _lockDocId = null;
+  try {
+    await db.collection('slot_locks').doc(id).delete();
+  } catch(err) {
+    console.warn('Lock no pudo liberarse:', err.message);
+  }
 }
 
 // ── PASO 5: Resumen y datos ──────────────────────────────────────────────────
@@ -455,7 +530,7 @@ async function confirmarCita() {
     const srvData = _servicios.find(s => s.id === sel.servicioId);
     const barData = _barberos.find(b => b.id === sel.barberoId);
 
-    await db.collection('appointments').add({
+    const apptRef = await db.collection('appointments').add({
       barbershopId:  _barbershopId,
       clientName:    nombre,
       clienteId:     clienteId,
@@ -472,8 +547,11 @@ async function confirmarCita() {
       createdAt:     firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Mostrar pantalla de éxito
-    mostrarExito(nombre, telefono, srvData, barData, citaDate);
+    // Liberar el lock (ya no es necesario, la cita quedó confirmada)
+    await _liberarLock();
+
+    // Mostrar pantalla de éxito, pasando el id para poder cancelar
+    mostrarExito(nombre, telefono, srvData, barData, citaDate, apptRef.id);
 
   } catch(err) {
     console.error(err);
@@ -483,7 +561,7 @@ async function confirmarCita() {
   }
 }
 
-function mostrarExito(nombre, telefono, srv, bar, fecha) {
+function mostrarExito(nombre, telefono, srv, bar, fecha, apptId) {
   for (let i = 1; i <= 5; i++) {
     const el = document.getElementById(`step${i}`);
     if (el) el.style.display = 'none';
@@ -520,7 +598,71 @@ function mostrarExito(nombre, telefono, srv, bar, fecha) {
     : `https://wa.me/?text=${waMsg}`;
   document.getElementById('successWa').href = waLink;
 
+  // Botón de cancelación — solo visible si tenemos el id de la cita
+  const cancelWrap = document.getElementById('successCancelWrap');
+  if (cancelWrap) {
+    if (apptId) {
+      cancelWrap.style.display = 'block';
+      cancelWrap.innerHTML = `
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--gray2);text-align:center">
+          <p style="font-size:0.78rem;color:var(--gray4);margin-bottom:10px">
+            ¿No podrás asistir? Puedes cancelar tu cita aquí.
+          </p>
+          <button onclick="cancelarCitaPublica('${apptId}')"
+                  id="btnCancelarPublico"
+                  style="background:none;border:1px solid var(--danger);color:var(--danger);
+                         padding:9px 20px;border-radius:var(--radius);cursor:pointer;
+                         font-size:0.85rem;font-weight:600;transition:all 0.2s"
+                  onmouseenter="this.style.background='rgba(224,49,49,0.06)'"
+                  onmouseleave="this.style.background='none'">
+            <i class="bi bi-x-circle" style="margin-right:6px"></i>Cancelar mi cita
+          </button>
+        </div>`;
+    } else {
+      cancelWrap.style.display = 'none';
+    }
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Cancelación desde el link público ───────────────────────────────────────
+async function cancelarCitaPublica(apptId) {
+  if (!apptId) return;
+  const btn = document.getElementById('btnCancelarPublico');
+  if (!confirm('¿Seguro que deseas cancelar tu cita? Esta acción no se puede deshacer.')) return;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(224,49,49,0.3);border-top-color:var(--danger);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px"></span> Cancelando...';
+  }
+
+  try {
+    await db.collection('appointments').doc(apptId).update({
+      status: 'cancelled',
+      cancelledAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      cancelledBy:  'client_public_link'
+    });
+
+    // Mostrar confirmación de cancelación
+    const cancelWrap = document.getElementById('successCancelWrap');
+    if (cancelWrap) {
+      cancelWrap.innerHTML = `
+        <div style="margin-top:20px;padding:14px 18px;background:rgba(224,49,49,0.06);
+                    border:1px solid rgba(224,49,49,0.25);border-radius:var(--radius);text-align:center">
+          <i class="bi bi-check-circle" style="color:var(--danger);font-size:1.2rem;margin-bottom:6px;display:block"></i>
+          <p style="font-size:0.85rem;color:var(--danger);font-weight:600;margin-bottom:4px">Cita cancelada</p>
+          <p style="font-size:0.78rem;color:var(--gray4)">Tu cita ha sido cancelada exitosamente.</p>
+        </div>`;
+    }
+  } catch(err) {
+    console.error('Error cancelando cita:', err);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-x-circle" style="margin-right:6px"></i>Cancelar mi cita';
+    }
+    alert('Ocurrió un error al cancelar la cita. Intenta de nuevo.');
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

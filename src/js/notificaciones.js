@@ -76,28 +76,46 @@ function renderNotificaciones(citas) {
   }
 
   listEl.innerHTML = citas.map(c => {
-    const leida = _notifLeidas.has(c.id);
-    const fecha = c.date?.toDate ? c.date.toDate() : new Date(c.date);
-    const creadaEn = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
-    const hace     = tiempoRelativo(creadaEn);
+    const leida      = _notifLeidas.has(c.id);
+    const isCancelled= c.status === 'cancelled';
+    const fecha      = c.date?.toDate ? c.date.toDate() : new Date(c.date);
+    const creadaEn   = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
+    const hace       = tiempoRelativo(creadaEn);
+    const dotColor   = isCancelled ? 'var(--danger)' : 'var(--accent)';
+    const iconClass  = isCancelled ? 'bi-calendar-x' : 'bi-calendar-plus';
+    const iconColor  = isCancelled ? 'var(--danger)' : 'var(--accent)';
+    const accionText = isCancelled
+      ? `${escHtmlN(c.clientName)} <strong>canceló</strong> su cita`
+      : `${escHtmlN(c.clientName)} agendó una cita`;
+    const rowBg = leida ? '' : (isCancelled
+      ? 'background:rgba(224,49,49,0.05)'
+      : 'background:rgba(17,17,17,0.03)');
+
+    const waPhone = c.clientPhone ? c.clientPhone.replace(/\D/g,'') : '';
+    const waLink  = waPhone
+      ? `· <a href="https://wa.me/57${waPhone}" target="_blank" style="color:#25D366" onclick="event.stopPropagation()"><i class="bi bi-whatsapp"></i></a>`
+      : '';
 
     return `
-      <div onclick="marcarLeida('${c.id}')" style="padding:14px 18px;border-bottom:1px solid var(--border);
-           cursor:pointer;transition:background 0.15s;${leida?'opacity:0.55':'background:rgba(201,168,76,0.04)'}"
+      <div onclick="marcarLeida('${c.id}')"
+           style="padding:14px 18px;border-bottom:1px solid var(--border);
+                  cursor:pointer;transition:background 0.15s;${leida ? 'opacity:0.55' : rowBg}"
            onmouseenter="this.style.background='var(--surface2)'"
-           onmouseleave="this.style.background='${leida?'':'rgba(201,168,76,0.04)'}'">
+           onmouseleave="this.style.background=''">
         <div style="display:flex;align-items:flex-start;gap:10px">
-          ${!leida ? '<div style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px"></div>' : '<div style="width:7px;flex-shrink:0"></div>'}
+          ${!leida
+            ? `<div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:5px"></div>`
+            : '<div style="width:7px;flex-shrink:0"></div>'}
           <div style="flex:1;min-width:0">
-            <div style="font-size:0.85rem;font-weight:${leida?'400':'600'};color:var(--text);margin-bottom:3px">
-              <i class="bi bi-calendar-plus" style="margin-right:5px;color:var(--accent)"></i>
-              ${escHtmlN(c.clientName)} agendó una cita
+            <div style="font-size:0.85rem;font-weight:${leida ? '400' : '600'};color:var(--text);margin-bottom:3px">
+              <i class="bi ${iconClass}" style="margin-right:5px;color:${iconColor}"></i>
+              ${accionText}
             </div>
             <div style="font-size:0.78rem;color:var(--muted);line-height:1.5">
               ${escHtmlN(c.serviceName||'—')} · ${escHtmlN(c.employeeName||'—')}<br>
               ${fecha.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'})}
               ${fecha.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
-              ${c.clientPhone ? `· <a href="https://wa.me/57${c.clientPhone.replace(/\\D/g,'')}" target="_blank" style="color:#25D366" onclick="event.stopPropagation()"><i class="bi bi-whatsapp"></i></a>` : ''}
+              ${waLink}
             </div>
             <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">${hace}</div>
           </div>
