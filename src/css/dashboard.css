@@ -315,7 +315,7 @@ tr:hover td { background: var(--bg2); color: var(--text); }
    ============================================================ */
 @media (max-width: 1224px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }  
-  .sidebar-footer { padding-bottom: 75px;}
+  .sidebar-footer { padding-bottom: 85px;}
 }
 
 /* ============================================================
