@@ -82,7 +82,7 @@
   padding: 14px 10px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
-  padding-bottom: 60px;
+  padding-bottom: 20px;
 }
 .user-chip {
   display: flex; align-items: center; gap: 10px;
@@ -331,6 +331,9 @@ tr:hover td { background: var(--bg2); color: var(--text); }
     transform: translateX(0);
     box-shadow: var(--shadow-lg);
   }
+  .sidebar-footer {
+  padding-bottom: 60px;
+}
 
   /* Main ocupa todo el ancho */
   .main-content { margin-left: 0; }
