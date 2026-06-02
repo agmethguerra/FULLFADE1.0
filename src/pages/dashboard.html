@@ -433,11 +433,33 @@
 <!-- Barbero -->
 <div class="modal-overlay" id="modalBarbero">
   <div class="modal">
-    <div class="modal-header"><h3><i class="bi bi-person-badge" style="margin-right:8px"></i>Añadir Barbero</h3><button class="modal-close" data-close="modalBarbero"><i class="bi bi-x"></i></button></div>
+    <div class="modal-header">
+      <h3><i class="bi bi-person-badge" style="margin-right:8px"></i><span id="modalBarberoTitulo">Añadir Barbero</span></h3>
+      <button class="modal-close" data-close="modalBarbero"><i class="bi bi-x"></i></button>
+    </div>
+    <input type="hidden" id="barberoEditId" value="" />
+
+    <!-- Preview de foto -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div id="barberoFotoPreview" style="width:64px;height:64px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:var(--muted);flex-shrink:0;overflow:hidden;font-family:var(--serif)">?</div>
+      <div style="flex:1">
+        <label class="label" style="margin-bottom:6px;display:block">Foto del barbero</label>
+        <label style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:0.85rem;padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);transition:background 0.15s" onmouseenter="this.style.background='var(--surface3)'" onmouseleave="this.style.background='var(--surface2)'">
+          <i class="bi bi-camera"></i> Subir foto
+          <input type="file" id="barberoFotoInput" accept="image/*" style="display:none" onchange="previsualizarFoto(this)" />
+        </label>
+        <div id="barberoFotoNombre" style="font-size:0.75rem;color:var(--muted);margin-top:5px">Sin foto seleccionada</div>
+        <button id="barberoFotoQuitarBtn" type="button" onclick="quitarFotoBarbero()" style="display:none;font-size:0.75rem;color:var(--danger);background:none;border:none;cursor:pointer;margin-top:4px;padding:0"><i class="bi bi-x-circle"></i> Quitar foto</button>
+      </div>
+    </div>
+
     <div class="form-group"><label class="label">Nombre completo *</label><input class="input" type="text" id="barberoNombre" placeholder="Ej: Miguel Torres" /></div>
     <div class="form-group"><label class="label">Teléfono</label><input class="input" type="tel" id="barberoTelefono" placeholder="Ej: 3109876543" /></div>
     <div class="form-group"><label class="label">Especialidad</label><input class="input" type="text" id="barberoEspecialidad" placeholder="Ej: Fades, Degradados" /></div>
-    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalBarbero">Cancelar</button><button class="btn btn-gold" id="guardarBarbero"><i class="bi bi-check-lg"></i> Guardar barbero</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modalBarbero">Cancelar</button>
+      <button class="btn btn-gold" id="guardarBarbero"><i class="bi bi-check-lg"></i> <span id="guardarBarberoTxt">Guardar barbero</span></button>
+    </div>
   </div>
 </div>
 

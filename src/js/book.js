@@ -112,12 +112,15 @@ function renderBarberos() {
     return;
   }
   grid.innerHTML = _barberos.map(b => {
-    const inicial = (b.name||'B').charAt(0).toUpperCase();
+    const inicial   = (b.name || 'B').charAt(0).toUpperCase();
+    const avatarHtml = b.photoBase64
+      ? `<div class="barber-avatar barber-avatar--photo"><img src="${b.photoBase64}" alt="${escHtml(b.name)}" /></div>`
+      : `<div class="barber-avatar">${inicial}</div>`;
     return `
       <div class="barber-option" id="barber-${b.id}" onclick="selectBarbero('${b.id}','${escHtml(b.name)}')">
-        <div class="barber-avatar">${inicial}</div>
+        ${avatarHtml}
         <div class="barber-name">${escHtml(b.name)}</div>
-        <div class="barber-spec">${escHtml(b.specialty||'Barbero')}</div>
+        <div class="barber-spec">${escHtml(b.specialty || 'Barbero')}</div>
       </div>`;
   }).join('');
 }
@@ -526,6 +529,10 @@ async function confirmarCita() {
       clienteId = cliRef.id;
     }
 
+    // Generar código único de cancelación (6 caracteres alfanumérico)
+    const cancelCode = Math.random().toString(36).substring(2, 5).toUpperCase() +
+                       Math.random().toString(36).substring(2, 5).toUpperCase().slice(0, 3);
+
     // Crear la cita
     const srvData = _servicios.find(s => s.id === sel.servicioId);
     const barData = _barberos.find(b => b.id === sel.barberoId);
@@ -544,6 +551,7 @@ async function confirmarCita() {
       notes:         notas,
       status:        'scheduled',
       source:        'booking_link',  // Identifica que vino del link público
+      cancelCode:    cancelCode,
       createdAt:     firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -551,7 +559,7 @@ async function confirmarCita() {
     await _liberarLock();
 
     // Mostrar pantalla de éxito, pasando el id para poder cancelar
-    mostrarExito(nombre, telefono, srvData, barData, citaDate, apptRef.id);
+    mostrarExito(nombre, telefono, srvData, barData, citaDate, apptRef.id, cancelCode);
 
   } catch(err) {
     console.error(err);
@@ -561,21 +569,24 @@ async function confirmarCita() {
   }
 }
 
-function mostrarExito(nombre, telefono, srv, bar, fecha, apptId) {
+function mostrarExito(nombre, telefono, srv, bar, fecha, apptId, cancelCode) {
   for (let i = 1; i <= 5; i++) {
     const el = document.getElementById(`step${i}`);
     if (el) el.style.display = 'none';
   }
+  // Ocultar también tabs y stepsBar al mostrar el éxito
+  const stepsBar = document.getElementById('stepsBar');
+  if (stepsBar) stepsBar.style.display = 'none';
+  const bookTabs = document.querySelector('.book-tabs');
+  if (bookTabs) bookTabs.style.display = 'none';
 
   const screen = document.getElementById('successScreen');
   screen.style.display = 'flex';
 
-  const meses = ['enero','febrero','marzo','abril','mayo','junio',
-                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const [h, m] = sel.hora.split(':').map(Number);
   const ampm   = h < 12 ? 'a.m.' : 'p.m.';
   const h12    = h % 12 || 12;
-  const horaLabel = `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  const horaLabel  = `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
   const fechaLabel = `${sel.fechaLabel || sel.fechaStr}`;
 
   document.getElementById('successDetail').innerHTML = `
@@ -598,40 +609,144 @@ function mostrarExito(nombre, telefono, srv, bar, fecha, apptId) {
     : `https://wa.me/?text=${waMsg}`;
   document.getElementById('successWa').href = waLink;
 
-  // Botón de cancelación — solo visible si tenemos el id de la cita
-  const cancelWrap = document.getElementById('successCancelWrap');
-  if (cancelWrap) {
-    if (apptId) {
-      cancelWrap.style.display = 'block';
-      cancelWrap.innerHTML = `
-        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--gray2);text-align:center">
-          <p style="font-size:0.78rem;color:var(--gray4);margin-bottom:10px">
-            ¿No podrás asistir? Puedes cancelar tu cita aquí.
-          </p>
-          <button onclick="cancelarCitaPublica('${apptId}')"
-                  id="btnCancelarPublico"
-                  style="background:none;border:1px solid var(--danger);color:var(--danger);
-                         padding:9px 20px;border-radius:var(--radius);cursor:pointer;
-                         font-size:0.85rem;font-weight:600;transition:all 0.2s"
-                  onmouseenter="this.style.background='rgba(224,49,49,0.06)'"
-                  onmouseleave="this.style.background='none'">
-            <i class="bi bi-x-circle" style="margin-right:6px"></i>Cancelar mi cita
-          </button>
-        </div>`;
-    } else {
-      cancelWrap.style.display = 'none';
-    }
+  // Mostrar código de cancelación
+  const codeBox = document.getElementById('successCancelCode');
+  const codeVal = document.getElementById('successCancelCodeValue');
+  if (codeBox && codeVal && cancelCode) {
+    codeVal.textContent = cancelCode;
+    codeBox.style.display = 'block';
   }
+
+  // El wrap inline ya no se usa (se reemplazó por el panel de código)
+  const cancelWrap = document.getElementById('successCancelWrap');
+  if (cancelWrap) cancelWrap.style.display = 'none';
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── Cancelación desde el link público ───────────────────────────────────────
-async function cancelarCitaPublica(apptId) {
-  if (!apptId) return;
-  const btn = document.getElementById('btnCancelarPublico');
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+function switchBookTab(tab) {
+  const isAgendar = tab === 'agendar';
+  document.getElementById('tabAgendar').classList.toggle('active',  isAgendar);
+  document.getElementById('tabCancelar').classList.toggle('active', !isAgendar);
+
+  const cancelPanel = document.getElementById('cancelPanel');
+  const stepsBar    = document.getElementById('stepsBar');
+  const successScr  = document.getElementById('successScreen');
+
+  cancelPanel.style.display = isAgendar ? 'none' : 'block';
+
+  if (isAgendar) {
+    // Volver al wizard: mostrar stepsBar y el step activo
+    if (stepsBar) stepsBar.style.display = '';
+    if (successScr) successScr.style.display = 'none';
+    // Mostrar el paso actual (step1 si no hay selección)
+    for (let i = 1; i <= 5; i++) {
+      const el = document.getElementById(`step${i}`);
+      if (el) el.style.display = 'none';
+    }
+    const currentStep = (sel.barberoId && sel.servicioId && sel.fechaStr && sel.hora) ? 5
+                      : (sel.barberoId && sel.servicioId && sel.fechaStr) ? 4
+                      : (sel.barberoId && sel.servicioId) ? 3
+                      : sel.barberoId ? 2 : 1;
+    const activeEl = document.getElementById(`step${currentStep}`);
+    if (activeEl) activeEl.style.display = 'block';
+  } else {
+    // Ir al panel de cancelación: ocultar wizard
+    if (stepsBar) stepsBar.style.display = 'none';
+    if (successScr) successScr.style.display = 'none';
+    for (let i = 1; i <= 5; i++) {
+      const el = document.getElementById(`step${i}`);
+      if (el) el.style.display = 'none';
+    }
+    // Limpiar resultado anterior
+    document.getElementById('cancelSearchResult').innerHTML = '';
+    document.getElementById('cancelCodeInput').value = '';
+    document.getElementById('cancelCodeInput').classList.remove('input-error');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Buscar cita por código ────────────────────────────────────────────────────
+async function buscarCitaPorCodigo() {
+  const codigo = document.getElementById('cancelCodeInput').value.trim().toUpperCase();
+  const input  = document.getElementById('cancelCodeInput');
+  const result = document.getElementById('cancelSearchResult');
+  const btn    = document.getElementById('btnBuscarCodigo');
+
+  if (!codigo || codigo.length < 6) {
+    input.classList.add('input-error');
+    result.innerHTML = `<p style="text-align:center;font-size:0.85rem;color:var(--danger)">Ingresa el código completo de 6 caracteres.</p>`;
+    return;
+  }
+  input.classList.remove('input-error');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px"></span> Buscando...';
+  result.innerHTML = '';
+
+  try {
+    const snap = await db.collection('appointments')
+      .where('barbershopId', '==', _barbershopId)
+      .where('cancelCode',   '==', codigo)
+      .where('status',       '==', 'scheduled')
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      result.innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+          <i class="bi bi-search" style="font-size:1.8rem;color:var(--gray3);display:block;margin-bottom:10px"></i>
+          <p style="font-size:0.88rem;color:var(--gray4);line-height:1.6">
+            No se encontró ninguna cita activa con ese código.<br>
+            Verifica que el código sea correcto.
+          </p>
+        </div>`;
+      return;
+    }
+
+    const doc    = snap.docs[0];
+    const data   = doc.data();
+    const fecha  = data.date?.toDate ? data.date.toDate() : new Date(data.date);
+    const [fH, fM] = [fecha.getHours(), fecha.getMinutes()];
+    const ampm   = fH < 12 ? 'a.m.' : 'p.m.';
+    const h12    = fH % 12 || 12;
+    const horaLabel  = `${h12}:${String(fM).padStart(2,'0')} ${ampm}`;
+    const fechaLabel = fecha.toLocaleDateString('es-CO', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+    result.innerHTML = `
+      <div class="appt-found-card">
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray4);margin-bottom:10px;font-weight:600">Cita encontrada</div>
+        <div class="appt-found-row"><span>Cliente</span><span>${escHtml(data.clientName||'—')}</span></div>
+        <div class="appt-found-row"><span>Barbero</span><span>${escHtml(data.employeeName||'—')}</span></div>
+        <div class="appt-found-row"><span>Servicio</span><span>${escHtml(data.serviceName||'—')}</span></div>
+        <div class="appt-found-row"><span>Fecha</span><span>${fechaLabel}</span></div>
+        <div class="appt-found-row"><span>Hora</span><span>${horaLabel}</span></div>
+      </div>
+      <button onclick="confirmarCancelacionPorCodigo('${doc.id}')"
+              style="width:100%;padding:13px;background:none;border:2px solid var(--danger);
+                     color:var(--danger);border-radius:var(--radius);font-size:0.92rem;font-weight:600;
+                     cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+                     transition:background 0.18s"
+              onmouseenter="this.style.background='rgba(224,49,49,0.06)'"
+              onmouseleave="this.style.background='none'">
+        <i class="bi bi-x-circle"></i> Cancelar esta cita
+      </button>`;
+  } catch(err) {
+    console.error('Error buscando cita:', err);
+    result.innerHTML = `<p style="text-align:center;font-size:0.85rem;color:var(--danger)">Ocurrió un error. Intenta de nuevo.</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-search"></i> Buscar cita';
+  }
+}
+
+// ── Confirmar cancelación por código ─────────────────────────────────────────
+async function confirmarCancelacionPorCodigo(apptId) {
   if (!confirm('¿Seguro que deseas cancelar tu cita? Esta acción no se puede deshacer.')) return;
 
+  const result = document.getElementById('cancelSearchResult');
+  const btn    = result.querySelector('button');
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(224,49,49,0.3);border-top-color:var(--danger);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px"></span> Cancelando...';
@@ -639,29 +754,28 @@ async function cancelarCitaPublica(apptId) {
 
   try {
     await db.collection('appointments').doc(apptId).update({
-      status: 'cancelled',
-      cancelledAt:  firebase.firestore.FieldValue.serverTimestamp(),
-      cancelledBy:  'client_public_link'
+      status:      'cancelled',
+      cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+      cancelledBy: 'client_cancel_code'
     });
 
-    // Mostrar confirmación de cancelación
-    const cancelWrap = document.getElementById('successCancelWrap');
-    if (cancelWrap) {
-      cancelWrap.innerHTML = `
-        <div style="margin-top:20px;padding:14px 18px;background:rgba(224,49,49,0.06);
-                    border:1px solid rgba(224,49,49,0.25);border-radius:var(--radius);text-align:center">
-          <i class="bi bi-check-circle" style="color:var(--danger);font-size:1.2rem;margin-bottom:6px;display:block"></i>
-          <p style="font-size:0.85rem;color:var(--danger);font-weight:600;margin-bottom:4px">Cita cancelada</p>
-          <p style="font-size:0.78rem;color:var(--gray4)">Tu cita ha sido cancelada exitosamente.</p>
-        </div>`;
-    }
+    result.innerHTML = `
+      <div style="text-align:center;padding:24px 16px;border:1px solid rgba(47,158,68,0.3);
+                  background:rgba(47,158,68,0.05);border-radius:var(--radius)">
+        <i class="bi bi-check-circle" style="font-size:2rem;color:var(--success);display:block;margin-bottom:10px"></i>
+        <p style="font-size:0.95rem;font-weight:700;color:var(--success);margin-bottom:6px">Cita cancelada</p>
+        <p style="font-size:0.82rem;color:var(--gray4);line-height:1.6">Tu cita ha sido cancelada exitosamente.<br>Si deseas reagendar, usa la pestaña <strong>"Agendar cita"</strong>.</p>
+      </div>`;
+
+    // Limpiar input
+    document.getElementById('cancelCodeInput').value = '';
   } catch(err) {
     console.error('Error cancelando cita:', err);
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-x-circle" style="margin-right:6px"></i>Cancelar mi cita';
+      btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar esta cita';
     }
-    alert('Ocurrió un error al cancelar la cita. Intenta de nuevo.');
+    alert('Ocurrió un error al cancelar. Intenta de nuevo.');
   }
 }
 

@@ -115,8 +115,10 @@
       width: 48px; height: 48px; border-radius: 50%; background: var(--black);
       color: var(--gold); display: flex; align-items: center; justify-content: center;
       font-family: var(--serif); font-size: 1.3rem; font-weight: 900;
-      margin: 0 auto 10px;
+      margin: 0 auto 10px; overflow: hidden;
     }
+    .barber-avatar--photo { background: transparent; }
+    .barber-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
     .barber-name { font-size: 0.85rem; font-weight: 600; color: var(--black); }
     .barber-spec { font-size: 0.75rem; color: var(--gray4); margin-top: 3px; }
 
@@ -252,6 +254,65 @@
     .success-detail-row span:first-child { color: var(--gray4); }
     .success-detail-row span:last-child  { font-weight: 600; color: var(--black); }
 
+    /* Código de cancelación en pantalla de éxito */
+    .cancel-code-box {
+      width: 100%; max-width: 380px; margin: 20px 0 0;
+      border: 1.5px dashed var(--gray3); border-radius: var(--radius);
+      padding: 16px 20px; text-align: center; background: var(--gray1);
+    }
+    .cancel-code-label { font-size: 0.72rem; text-transform: uppercase;
+                         letter-spacing: 0.12em; color: var(--gray4); margin-bottom: 8px; }
+    .cancel-code-value {
+      font-family: monospace; font-size: 1.8rem; font-weight: 700;
+      letter-spacing: 0.25em; color: var(--black); line-height: 1;
+    }
+    .cancel-code-hint { font-size: 0.75rem; color: var(--gray4); margin-top: 8px; line-height: 1.5; }
+
+    /* Panel cancelar por código */
+    .cancel-panel {
+      display: none; padding: 32px 24px 48px;
+    }
+    .cancel-panel-title {
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 900;
+      color: var(--black); margin-bottom: 8px; text-align: center;
+    }
+    .cancel-panel-sub { font-size: 0.88rem; color: var(--gray4); text-align: center;
+                        margin-bottom: 28px; line-height: 1.6; max-width: 360px; margin-left: auto; margin-right: auto; }
+    .cancel-code-input {
+      width: 100%; text-align: center; font-family: monospace;
+      font-size: 1.5rem; font-weight: 700; letter-spacing: 0.22em;
+      text-transform: uppercase; padding: 14px 16px;
+      border: 2px solid var(--gray2); border-radius: var(--radius);
+      outline: none; transition: border-color 0.2s; margin-bottom: 12px;
+    }
+    .cancel-code-input:focus { border-color: var(--black); }
+    .cancel-code-input.input-error { border-color: var(--danger); }
+
+    /* Tab switcher */
+    .book-tabs {
+      display: flex; border-bottom: 2px solid var(--gray2);
+      margin-bottom: 0; background: #fff;
+    }
+    .book-tab {
+      flex: 1; padding: 14px 8px; text-align: center; cursor: pointer;
+      font-size: 0.85rem; font-weight: 600; color: var(--gray4);
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: all 0.18s; user-select: none;
+    }
+    .book-tab:hover { color: var(--black); }
+    .book-tab.active { color: var(--black); border-bottom-color: var(--gold); }
+    .book-tab i { margin-right: 6px; }
+
+    /* Resultado de búsqueda de cita */
+    .appt-found-card {
+      background: var(--gray1); border: 1px solid var(--gray2);
+      border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px;
+    }
+    .appt-found-row { display: flex; justify-content: space-between;
+                      font-size: 0.85rem; padding: 4px 0; }
+    .appt-found-row span:first-child { color: var(--gray4); }
+    .appt-found-row span:last-child  { font-weight: 600; color: var(--black); }
+
     .empty-state-sm { text-align: center; padding: 24px 0; color: var(--gray4); font-size: 0.88rem; }
     .empty-state-sm i { font-size: 1.8rem; display: block; margin-bottom: 8px; color: var(--gray3); }
 
@@ -291,6 +352,39 @@
 
 <!-- Wizard body -->
 <div class="book-body" id="bookBody" style="display:none">
+
+  <!-- Tabs: Agendar / Cancelar -->
+  <div class="book-tabs">
+    <div class="book-tab active" id="tabAgendar" onclick="switchBookTab('agendar')">
+      <i class="bi bi-calendar-plus"></i> Agendar cita
+    </div>
+    <div class="book-tab" id="tabCancelar" onclick="switchBookTab('cancelar')">
+      <i class="bi bi-x-circle"></i> Cancelar cita
+    </div>
+  </div>
+
+  <!-- Panel: Cancelar por código -->
+  <div class="cancel-panel" id="cancelPanel">
+    <div style="max-width:400px;margin:0 auto">
+      <div class="cancel-panel-title">Cancelar mi cita</div>
+      <p class="cancel-panel-sub">Ingresa el código de 6 caracteres que recibiste al confirmar tu cita.</p>
+
+      <input type="text" class="cancel-code-input" id="cancelCodeInput"
+             maxlength="6" placeholder="ABC123"
+             oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+             onkeydown="if(event.key==='Enter')buscarCitaPorCodigo()" />
+
+      <button onclick="buscarCitaPorCodigo()" id="btnBuscarCodigo"
+              style="width:100%;padding:13px;background:var(--black);color:#fff;border:none;
+                     border-radius:var(--radius);font-size:0.92rem;font-weight:600;cursor:pointer;
+                     display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.2s"
+              onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">
+        <i class="bi bi-search"></i> Buscar cita
+      </button>
+
+      <div id="cancelSearchResult" style="margin-top:20px"></div>
+    </div>
+  </div>
 
   <!-- Steps -->
   <div class="steps-bar" id="stepsBar">
@@ -452,7 +546,7 @@
   </div>
 
   <!-- Pantalla de éxito -->
-  <div class="success-screen" id="successScreen">
+   <div class="success-screen" id="successScreen">
     <div class="success-icon"><i class="bi bi-check-lg"></i></div>
     <h2 class="success-title">¡Cita confirmada!</h2>
     <p class="success-sub">Tu cita quedó agendada. Te esperamos. Guarda estos datos para recordarla.</p>
@@ -462,6 +556,12 @@
               padding:12px 22px;border-radius:var(--radius);font-weight:600;text-decoration:none;font-size:0.9rem">
       <i class="bi bi-whatsapp"></i> Contactar por WhatsApp
     </a>
+    <!-- Código de cancelación -->
+    <div class="cancel-code-box" id="successCancelCode" style="display:none">
+      <div class="cancel-code-label"><i class="bi bi-key" style="margin-right:4px"></i> Código para cancelar tu cita</div>
+      <div class="cancel-code-value" id="successCancelCodeValue">——</div>
+      <div class="cancel-code-hint">Guarda este código. Si necesitas cancelar tu cita,<br>úsalo en la sección <strong>"Cancelar cita"</strong> de esta página.</div>
+    </div>
     <!-- Cancelación desde link público — se rellena dinámicamente en book.js -->
     <div id="successCancelWrap" style="display:none;width:100%;max-width:400px"></div>
   </div>
