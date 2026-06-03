@@ -82,7 +82,7 @@
   padding: 14px 10px;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
-  padding-bottom: 20px;
+  padding-bottom: 30px;
 }
 .user-chip {
   display: flex; align-items: center; gap: 10px;
@@ -313,10 +313,9 @@ tr:hover td { background: var(--bg2); color: var(--text); }
 /* ============================================================
    RESPONSIVE — tablet (≤ 1024px)
    ============================================================ */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .sidebar-footer { padding-bottom: 85px; }
-
+  .sidebar-footer { padding-bottom: 80px;}
 }
 
 /* ============================================================
